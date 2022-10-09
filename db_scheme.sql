@@ -31,23 +31,9 @@ DROP TABLE IF EXISTS "exceptions";
 CREATE TABLE exceptions (exception_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, exception_name STRING);
 
 -- ----------------------------
--- Table structure for sqlite_sequence
--- ----------------------------
-DROP TABLE IF EXISTS "sqlite_sequence";
-CREATE TABLE sqlite_sequence(name,seq);
-
--- ----------------------------
 -- Table structure for users
 -- ----------------------------
 DROP TABLE IF EXISTS "users";
 CREATE TABLE users (user_id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT, user_name STRING, user_creating_date DATETIME);
-
--- ----------------------------
--- Auto increment value for exceptions
--- ----------------------------
-
--- ----------------------------
--- Auto increment value for users
--- ----------------------------
 
 PRAGMA foreign_keys = true;
