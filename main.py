@@ -1,20 +1,27 @@
-import sqlite3
-import csv
-
-with open('new_additions.csv', encoding='utf-8') as file:
-    items = list(csv.reader(file, delimiter=',', quotechar='"'))
-items = list(filter(lambda x: x, items))
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+from datetime import datetime
+from sql_objects import User, Exception, Connection
 
 
-db = sqlite3.connect('Users_data.db')
-curs = db.cursor()
+engine = create_engine("sqlite:///data/Users_data.db", echo=True, future=True)
 
-for el in items:
-    curs.execute(
-    f"""
-    INSERT INTO e_additions (e_number, e_name, harm, property, usage, influence)
-    VALUES {tuple(el)}
-    """)
+with Session(engine) as session:
+    """
+    u = User(
+        user_name='V4',
+        user_creating_date=datetime.now()
+    )
+    
+    e = Exception(
+        exception_name='nuts'
+    )"""
 
-db.commit()
-db.close()
+    c = Connection(
+        user_id=session.scalar(select(User.user_id).where(User.user_name == 'V2')),
+        exception_id=session.scalar(select(Exception.exception_id).where(Exception.exception_name == 'milk')),
+        connection_creating_date=datetime.now()
+    )
+
+    session.add(c)
+    session.commit()
