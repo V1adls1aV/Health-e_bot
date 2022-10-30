@@ -1,4 +1,3 @@
-from ast import Delete
 from sql_objects import User, Exception, Connection
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
