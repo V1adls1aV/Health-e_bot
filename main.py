@@ -5,4 +5,3 @@ ud = UserEditor()
 ed = ExceptionEditor()
 
 ed.remove_exception(1)
-
