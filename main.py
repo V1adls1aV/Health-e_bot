@@ -68,17 +68,5 @@ def distribute_news(message):
                 remove_user()
     """
 
-@bot.message_handler(commands=['distribute'])
-def distribute_news(message):
-    pass
-    """
-    if message.from_user == ADMINNAME:
-        for user in users:
-            try:
-                bot.send_message(user, message.text)
-            except:
-                remove_user()
-    """
-
 
 bot.infinity_polling()  # Running
