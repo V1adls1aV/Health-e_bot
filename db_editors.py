@@ -8,10 +8,10 @@ class UserEditor:
     engine = create_engine("sqlite:///data/Users_data.db", 
     echo=True, future=True)
 
-    def create_user(self, user_name: str):
+    def create_user(self, chat_id: int):
         with Session(self.engine) as session:
             user = User(
-                user_name=user_name,
+                chat_id=chat_id,
                 user_creating_date=datetime.now()
             )
             session.add(user)
@@ -29,11 +29,11 @@ class UserEditor:
             session.delete(user)
             session.commit()
 
-    def get_user_id(self, user_name: str) -> int:
+    def get_user_id(self, chat_id: int) -> int:
         with Session(self.engine) as session:
             return session.scalar(
                 select(User.user_id)
-                .where(User.user_name == user_name)
+                .where(User.chat_id == chat_id)
             )
 
     def get_user_exceptions(self, user_id: int) -> list:
@@ -99,7 +99,7 @@ class ExceptionEditor:
     def get_exception_users(self, exception_id: int) -> list:
         with Session(self.engine) as session:
             return session.scalars(
-                select(User.user_name)
+                select(User.chat_id)
                 .join(User.connection)
                 .where(Connection.exception_id == exception_id)
             ).all()
