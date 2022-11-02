@@ -43,13 +43,13 @@ class User(Base):
     __tablename__ = 'users'
 
     user_id = Column(Integer, primary_key=True)
-    user_name = Column(String)
+    chat_id = Column(Integer)
     user_creating_date = Column(DateTime)
 
     connection = relationship('Connection', back_populates='user')
 
     def __repr__(self) -> str:
         return f'''
-        User(user_id={self.user_id!r}, user_name={self.user_name!r}, 
+        User(user_id={self.user_id!r}, chat_id={self.chat_id!r}, 
         user_creating_date={self.user_creating_date!r})
         '''

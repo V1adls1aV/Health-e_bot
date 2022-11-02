@@ -8,7 +8,7 @@ class Admin(tb.SimpleCustomFilter):
     key = 'is_admin'
     @staticmethod
     def check(message: tb.types.Message):
-        return message.from_user.username in ADMINS
+        return message.chat.id in ADMINS
 
 
 bot = tb.TeleBot(TOKEN, parse_mode='HTML')  # initializing bot
@@ -25,11 +25,11 @@ def send_welcome(message):
         types.KeyboardButton('Чёрный список')
     )
 
-    if not user_ed.get_user_id(message.from_user.username):
-        user_ed.create_user(message.from_user.username)  # Adding user
+    if not user_ed.get_user_id(message.chat.id):
+        user_ed.create_user(message.chat.id)  # Adding user
     
     bot.send_message(message.chat.id, 
-    DESCRIPTION.format(message.from_user.username), reply_markup=markup)
+    DESCRIPTION.format(message.from_user.first_name), reply_markup=markup)
 
 
 @bot.message_handler(commands=['distribute'], is_admin=True)
@@ -50,7 +50,7 @@ def sending_news(message):
         except:
             user_ed.remove_user(
                 user_ed.get_user_id(chat_id) 
-            )  # Maybe use chat_id for determining user?
+            )
             removements += 1
     bot.send_message(message.chat.id, 
     f'''
@@ -58,13 +58,13 @@ def sending_news(message):
     Количество рассылок: {str(amount)}.
     Удалённых пользователей: {str(removements)}.
     ''')
-    """
+    """  # Maybe use chat_id for determining user?
 
 
 @bot.message_handler(commands=['stop'])
 def remove_chat(message):
     user_ed.remove_user(
-        user_ed.get_user_id(message.from_user.username)
+        user_ed.get_user_id(message.chat.id)
     )  # Maybe delete exceptions without connections?
 
 
@@ -106,7 +106,7 @@ def inline_buttons_handler(call):
     if call.message:
         if call.data == 'get':  # Getting all exceptions
             exceptions = user_ed.get_user_exceptions(
-                        user_ed.get_user_id(call.from_user.username)
+                        user_ed.get_user_id(call.message.chat.id)
             )
             if exceptions:
                 bot.send_message(call.message.chat.id, 
@@ -132,7 +132,7 @@ def add_item(message):
         ex_id = exception_ed.create_exception(message.text.lower())
 
     user_ed.create_connection(
-        user_ed.get_user_id(message.from_user.username),
+        user_ed.get_user_id(message.chat.id),
         ex_id
     )
 
@@ -144,7 +144,7 @@ def del_item(message):
     ex_id = exception_ed.get_exception_id(message.text.lower())
     if ex_id:
         user_ed.remove_connection(
-            user_ed.get_user_id(message.from_user.username), ex_id)
+            user_ed.get_user_id(message.chat.id), ex_id)
         
         if not exception_ed.get_exception_users(ex_id):
             exception_ed.remove_exception(ex_id)
