@@ -43,6 +43,12 @@ class UserEditor:
                 .join(Exception.connection)
                 .where(Connection.user_id == user_id)
             ).all()
+
+    def get_chats_ids(self):
+        with Session(self.engine) as session:
+            return session.scalars(
+                select(User.chat_id)
+            ).all()
             
     def create_connection(self, user_id: int, exception_id: int):
         with Session(self.engine) as session:

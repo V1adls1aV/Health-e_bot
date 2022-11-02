@@ -39,34 +39,42 @@ def distribute_news(message):
 
 
 def sending_news(message):
-    bot.send_message(message.chat.id, 'Пока недоступно...')
-    """
     amount = 0
     removements = 0
-    for chat_id in all_chats:
+    for chat_id in user_ed.get_chats_ids():
         try:
-            bot.send_message(chat_id, 'Рассылка.')
+            bot.send_message(chat_id, message.text)
             amount += 1
         except:
-            user_ed.remove_user(
-                user_ed.get_user_id(chat_id) 
-            )
+            us_id = user_ed.get_user_id(chat_id)
+            exs = user_ed.get_user_exceptions(us_id)  # It will be good to return ex ids
+            user_ed.remove_user(us_id)
             removements += 1
+
+            for ex in exs:
+                ex_id = exception_ed.get_exception_id(ex)
+                if not exception_ed.get_exception_users(ex_id):
+                    exception_ed.remove_exception(ex_id)
+
     bot.send_message(message.chat.id, 
     f'''
     Успешно.
     Количество рассылок: {str(amount)}.
     Удалённых пользователей: {str(removements)}.
     ''')
-    """  # Maybe use chat_id for determining user?
 
 
 @bot.message_handler(commands=['stop'])
 def remove_chat(message):
-    user_ed.remove_user(
-        user_ed.get_user_id(message.chat.id)
-    )  # Maybe delete exceptions without connections?
+    us_id = user_ed.get_user_id(message.chat.id)
+    exs = user_ed.get_user_exceptions(us_id)  # It will be good to return ex ids
+    user_ed.remove_user(us_id)
 
+    for ex in exs:
+        ex_id = exception_ed.get_exception_id(ex)
+        if not exception_ed.get_exception_users(ex_id):
+            exception_ed.remove_exception(ex_id)
+    
 
 @bot.message_handler(content_types=['text'])
 def buttons_handler(message):
@@ -82,9 +90,9 @@ def buttons_handler(message):
         markup.add(
             types.InlineKeyboardButton('Получить список', 
             callback_data='get'),
-            types.InlineKeyboardButton('Добавить элемент', 
+            types.InlineKeyboardButton('Добавить элементы', 
             callback_data='add'),
-            types.InlineKeyboardButton('Удалить элемент', 
+            types.InlineKeyboardButton('Удалить элементы', 
             callback_data='del')
         )
 
@@ -117,43 +125,50 @@ def inline_buttons_handler(call):
 
         elif call.data == 'add':  # Adding a connection/excepiton
             mes = bot.send_message(call.message.chat.id,
-            'Пришлите название элемента.')
+            'Пришлите названия элементов.')
             bot.register_next_step_handler(mes, add_item)
 
         elif call.data == 'del':  # Deleting connection/exception
             mes = bot.send_message(call.message.chat.id,
-            'Пришлите название элемента.')
+            'Пришлите названия элементов.')
             bot.register_next_step_handler(mes, del_item)
 
 
 def add_item(message):
-    ex_id = exception_ed.get_exception_id(message.text.lower())
-    if not ex_id:
-        ex_id = exception_ed.create_exception(message.text.lower())
+    for ex in message.text.split(', '):
+        ex_id = exception_ed.get_exception_id(ex.lower())
+        if not ex_id:
+            ex_id = exception_ed.create_exception(ex.lower())
 
-    user_ed.create_connection(
-        user_ed.get_user_id(message.chat.id),
-        ex_id
-    )
+        if ex in user_ed.get_user_exceptions(
+            user_ed.get_user_id(message.chat.id)):  # Return ex ids 3/4(5) usings
+            bot.send_message(message.chat.id, 
+            f'Элемент "{ex}" уже есть в списке.')
+        else:
+            user_ed.create_connection(
+                user_ed.get_user_id(message.chat.id),
+                ex_id
+            )
 
-    bot.send_message(message.chat.id, 
-    f'Элемент "{message.text}" успешно добавлен.')
+            bot.send_message(message.chat.id, 
+            f'Элемент "{ex}" успешно добавлен.')
 
 
 def del_item(message):
-    ex_id = exception_ed.get_exception_id(message.text.lower())
-    if ex_id:
-        user_ed.remove_connection(
-            user_ed.get_user_id(message.chat.id), ex_id)
-        
-        if not exception_ed.get_exception_users(ex_id):
-            exception_ed.remove_exception(ex_id)
+    for ex in message.text.split(', '):
+        ex_id = exception_ed.get_exception_id(ex.lower())
+        if ex_id:
+            user_ed.remove_connection(
+                user_ed.get_user_id(message.chat.id), ex_id)
+            
+            if not exception_ed.get_exception_users(ex_id):
+                exception_ed.remove_exception(ex_id)
 
-        bot.send_message(message.chat.id,
-        f'Элемент "{message.text}" успешно удалён.')
-    else:
-        bot.send_message(message.chat.id, 
-        f'Элемента "{message.text}" не существует.')
+            bot.send_message(message.chat.id,
+            f'Элемент "{ex}" успешно удалён.')
+        else:
+            bot.send_message(message.chat.id, 
+            f'Элемента "{ex}" не существует.')
 
 
 bot.infinity_polling()  # Running
