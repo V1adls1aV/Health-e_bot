@@ -1,6 +1,6 @@
 import telebot as tb
 from telebot import types
-from db_editors import UserEditor, ExceptionEditor
+from db_objects import User, Additive
 from data.config import TOKEN, DESCRIPTION, ADMINS
 
 
@@ -13,8 +13,6 @@ class Admin(tb.SimpleCustomFilter):
 
 bot = tb.TeleBot(TOKEN, parse_mode='HTML')  # initializing bot
 bot.add_custom_filter(Admin())
-user_ed = UserEditor()
-exception_ed = ExceptionEditor()
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -25,8 +23,7 @@ def send_welcome(message):
         types.KeyboardButton('Чёрный список')
     )
 
-    if not user_ed.get_user_id(message.chat.id):
-        user_ed.create_user(message.chat.id)  # Adding user
+    User(message.chat.id)
     
     bot.send_message(message.chat.id, 
     DESCRIPTION.format(message.from_user.first_name), reply_markup=markup)
@@ -40,41 +37,19 @@ def distribute_news(message):
 
 def sending_news(message):
     amount = 0
-    removements = 0
-    for chat_id in user_ed.get_chats_ids():
+    for chat_id in User.get_chats_ids():
         try:
             bot.send_message(chat_id, message.text)
             amount += 1
-        except:
-            us_id = user_ed.get_user_id(chat_id)
-            exs = user_ed.get_user_exceptions(us_id)  # It will be good to return ex ids
-            user_ed.remove_user(us_id)
-            removements += 1
-
-            for ex in exs:
-                ex_id = exception_ed.get_exception_id(ex)
-                if not exception_ed.get_exception_users(ex_id):
-                    exception_ed.remove_exception(ex_id)
+        except:  # User has banned the bot
+            pass
 
     bot.send_message(message.chat.id, 
     f'''
     Успешно.
     Количество рассылок: {str(amount)}.
-    Удалённых пользователей: {str(removements)}.
     ''')
 
-
-@bot.message_handler(commands=['stop'])
-def remove_chat(message):
-    us_id = user_ed.get_user_id(message.chat.id)
-    exs = user_ed.get_user_exceptions(us_id)  # It will be good to return ex ids
-    user_ed.remove_user(us_id)
-
-    for ex in exs:
-        ex_id = exception_ed.get_exception_id(ex)
-        if not exception_ed.get_exception_users(ex_id):
-            exception_ed.remove_exception(ex_id)
-    
 
 @bot.message_handler(content_types=['text'])
 def buttons_handler(message):
@@ -113,12 +88,11 @@ def structure_analyser(message):
 def inline_buttons_handler(call):
     if call.message:
         if call.data == 'get':  # Getting all exceptions
-            exceptions = user_ed.get_user_exceptions(
-                        user_ed.get_user_id(call.message.chat.id)
-            )
-            if exceptions:
+            user = User(call.message.chat.id)
+            additives = user.get_additives()
+            if additives:
                 bot.send_message(call.message.chat.id, 
-                'Ваш чёрный список:\n' + ', '.join(exceptions))
+                'Ваш чёрный список:\n' + ', '.join(additives))
             else:
                 bot.send_message(call.message.chat.id, 
                 'У вас пока нет чёрного списка...')
@@ -135,40 +109,32 @@ def inline_buttons_handler(call):
 
 
 def add_item(message):
-    for ex in message.text.split(', '):
-        ex_id = exception_ed.get_exception_id(ex.lower())
-        if not ex_id:
-            ex_id = exception_ed.create_exception(ex.lower())
+    for additive_name in message.text.split(', '):  # Add filter later
+        user = User(message.chat.id)
 
-        if ex in user_ed.get_user_exceptions(
-            user_ed.get_user_id(message.chat.id)):  # Return ex ids 3/4(5) usings
+        if additive_name.lower() in user.get_additives():
             bot.send_message(message.chat.id, 
-            f'Элемент "{ex}" уже есть в списке.')
+            f'Элемент "{additive_name}" уже есть в списке.')
         else:
-            user_ed.create_connection(
-                user_ed.get_user_id(message.chat.id),
-                ex_id
-            )
+            additive = Additive(additive_name.lower())
+            user.create_connection(additive)
 
             bot.send_message(message.chat.id, 
-            f'Элемент "{ex}" успешно добавлен.')
+            f'Элемент "{additive_name}" успешно добавлен.')
 
 
 def del_item(message):
-    for ex in message.text.split(', '):
-        ex_id = exception_ed.get_exception_id(ex.lower())
-        if ex_id:
-            user_ed.remove_connection(
-                user_ed.get_user_id(message.chat.id), ex_id)
-            
-            if not exception_ed.get_exception_users(ex_id):
-                exception_ed.remove_exception(ex_id)
+    for additive_name in message.text.split(', '):
+        user = User(message.chat.id)
+        if additive_name in user.get_additives():
+            additive = Additive(additive_name)
+            user.remove_connection(additive)
 
             bot.send_message(message.chat.id,
-            f'Элемент "{ex}" успешно удалён.')
+            f'Элемент "{additive_name}" успешно удалён.')
         else:
             bot.send_message(message.chat.id, 
-            f'Элемента "{ex}" не существует.')
+            f'Элемента "{additive_name}" не существует.')
 
 
 bot.infinity_polling()  # Running

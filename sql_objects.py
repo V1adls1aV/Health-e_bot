@@ -10,32 +10,32 @@ class DBConnection(Base):
 
     connection_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'))
-    exception_id = Column(Integer, ForeignKey('exceptions.exception_id'))
+    additive_id = Column(Integer, ForeignKey('additives.additive_id'))
     connection_creating_date = Column(DateTime)
 
     user = relationship('DBUser', back_populates='connection')
-    exception = relationship('DBException', back_populates='connection')
+    additive = relationship('DBAdditive', back_populates='connection')
 
     def __repr__(self) -> str:
         return f'''
         DBConnection(connection_id={self.connection_id!r}, 
-        user_id={self.user_id!r}, exception_id={self.exception_id!r}, 
+        user_id={self.user_id!r}, additive_id={self.exception_id!r}, 
         connection_creating_date={self.connection_creating_date!r})
         '''
 
 
-class DBException(Base):
-    __tablename__ = 'exceptions'
+class DBAdditive(Base):
+    __tablename__ = 'additives'
 
-    exception_id = Column(Integer, primary_key=True)
-    exception_name = Column(String)
+    additive_id = Column(Integer, primary_key=True)
+    additive_name = Column(String)
 
-    connection = relationship('DBConnection', back_populates='exception')
+    connection = relationship('DBConnection', back_populates='additive')
 
     def __repr__(self) -> str:
         return f'''
-        DBException(exception_id={self.exception_id!r}, 
-        exception_name={self.exception_name!r})
+        DBAdditive(additive_id={self.additive_id!r}, 
+        additive_name={self.additive_name!r})
         '''
 
 

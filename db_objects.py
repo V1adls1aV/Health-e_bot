@@ -1,8 +1,43 @@
-from sql_objects import DBUser, DBException, DBConnection
+from sql_objects import DBUser, DBAdditive, DBConnection
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from datetime import datetime
 from data.config import DBPATH
+
+
+class Additive:
+    engine = create_engine(DBPATH, echo=True, future=True)
+    def __init__(self, additive_name: str) -> None:
+        with Session(self.engine) as session:
+            additive = session.scalar(
+                select(DBAdditive)
+                .where(DBAdditive.additive_name == additive_name)
+            )
+            if not additive:
+                additive = DBAdditive(
+                    additive_name=additive_name
+                )
+                session.add(additive)
+                session.commit()
+
+            self.additive_id = additive.additive_id
+            self.additive_name = additive_name
+
+    def __repr__(self) -> str:
+        return f'Additive(additive_id={self.additive_id}, additive_name="{self.additive_name}")'
+
+    def remove(self):
+        with Session(self.engine) as session:
+            additive = session.scalar(
+                select(DBAdditive)
+                .where(DBAdditive.additive_id == self.additive_id)
+            )
+
+            if additive.connection:
+                raise DBConnectionExist()
+
+            session.delete(additive)
+            session.commit()
 
 
 class User:
@@ -28,7 +63,7 @@ class User:
         return f'User(user_id={self.user_id}, chat_id={self.chat_id})'
 
     @classmethod
-    def get_all_chats_ids(cls):
+    def get_chats_ids(cls) -> list[int]:
         with Session(cls.engine) as session:
             return session.scalars(
                 select(DBUser.chat_id)
@@ -46,67 +81,31 @@ class User:
             session.delete(user)
             session.commit()
 
-    def get_exceptions(self) -> list:
+    def get_additives(self) -> list[str]:
         with Session(self.engine) as session:
             return session.scalars(
-                select(DBException.exception_name)
-                .join(DBException.connection)
+                select(DBAdditive.additive_name)
+                .join(DBAdditive.connection)
                 .where(DBConnection.user_id == self.user_id)
             ).all()
 
             
-    def create_connection(self, exception: UserException):
+    def create_connection(self, additive: Additive):
         with Session(self.engine) as session:
             session.add(DBConnection(
                 user_id=self.user_id,
-                exception_id=exception.exception_id,
+                additive_id=additive.additive_id,
                 connection_creating_date=datetime.now()
             ))
             session.commit()
 
-    def remove_connection(self, exception: UserException):
+    def remove_connection(self, additive: Additive):
         with Session(self.engine) as session:
             session.delete(session.scalar(
                 select(DBConnection)
                 .where(DBConnection.user_id == self.user_id)
-                .where(DBConnection.exception_id == exception.exception_id)
+                .where(DBConnection.additive_id == additive.additive_id)
             ))
-            session.commit()
-
-
-class UserException:
-    engine = create_engine(DBPATH, echo=True, future=True)
-    def __init__(self, exception_name: str) -> None:
-        with Session(self.engine) as session:
-            exception = session.scalar(
-                select(DBException)
-                .where(DBException.exception_name == exception_name)
-            )
-            if not exception:
-                exception = DBException(
-                    exception_name=exception_name,
-                    user_creating_date=datetime.now()
-                )
-                session.add(exception)
-                session.commit()
-
-            self.exception_id = exception.exception_id
-            self.excepiton_name = exception_name
-
-    def __repr__(self) -> str:
-        return f'UserException(exception_id={self.exception_id}, exception_name={self.excepiton_name})'
-
-    def remove_exception(self):
-        with Session(self.engine) as session:
-            exception = session.scalar(
-                select(DBException)
-                .where(DBException.exception_id == self.exception_id)
-            )
-
-            if not exception.connection:
-                raise DBConnectionExist()
-
-            session.delete(exception)
             session.commit()
 
 
