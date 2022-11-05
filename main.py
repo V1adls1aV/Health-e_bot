@@ -69,7 +69,7 @@ def buttons_handler(message):
             callback_data='add'),
             types.InlineKeyboardButton('Удалить элементы', 
             callback_data='del')
-        )
+        )  # Maybe remove keyboard after pressing a button?
 
         bot.send_message(message.chat.id, 'Выберете действие:', reply_markup=markup)
 
@@ -117,7 +117,7 @@ def add_item(message):
             f'Элемент "{additive_name}" уже есть в списке.')
         else:
             additive = Additive(additive_name.lower())
-            user.create_connection(additive)
+            user.add_additive(additive)
 
             bot.send_message(message.chat.id, 
             f'Элемент "{additive_name}" успешно добавлен.')
@@ -128,7 +128,7 @@ def del_item(message):
         user = User(message.chat.id)
         if additive_name in user.get_additives():
             additive = Additive(additive_name)
-            user.remove_connection(additive)
+            user.del_additive(additive)
 
             bot.send_message(message.chat.id,
             f'Элемент "{additive_name}" успешно удалён.')
