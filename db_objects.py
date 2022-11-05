@@ -6,9 +6,9 @@ from data.config import DBPATH
 
 
 class Additive:
-    engine = create_engine(DBPATH, echo=True, future=True)
+    __engine = create_engine(DBPATH, echo=True, future=True)
     def __init__(self, additive_name: str) -> None:
-        with Session(self.engine) as session:
+        with Session(self.__engine) as session:
             additive = session.scalar(
                 select(DBAdditive)
                 .where(DBAdditive.additive_name == additive_name)
@@ -27,7 +27,7 @@ class Additive:
         return f'Additive(additive_id={self.additive_id}, additive_name="{self.additive_name}")'
 
     def remove(self):
-        with Session(self.engine) as session:
+        with Session(self.__engine) as session:
             additive = session.scalar(
                 select(DBAdditive)
                 .where(DBAdditive.additive_id == self.additive_id)
@@ -41,9 +41,9 @@ class Additive:
 
 
 class User:
-    engine = create_engine(DBPATH, echo=True, future=True)
+    __engine = create_engine(DBPATH, echo=True, future=True)
     def __init__(self, chat_id: int) -> None:
-        with Session(self.engine) as session:
+        with Session(self.__engine) as session:
             user = session.scalar(
                 select(DBUser)
                 .where(DBUser.chat_id == chat_id)
@@ -62,15 +62,8 @@ class User:
     def __repr__(self) -> str:
         return f'User(user_id={self.user_id}, chat_id={self.chat_id})'
 
-    @classmethod
-    def get_chats_ids(cls) -> list[int]:
-        with Session(cls.engine) as session:
-            return session.scalars(
-                select(DBUser.chat_id)
-            ).all()
-
     def remove(self):
-        with Session(self.engine) as session:
+        with Session(self.__engine) as session:
             user = session.scalar(
                 select(DBUser)
                 .where(DBUser.chat_id == self.chat_id)
@@ -80,18 +73,24 @@ class User:
 
             session.delete(user)
             session.commit()
+    
+    @classmethod
+    def get_chats_ids(cls) -> list[int]:
+        with Session(cls.__engine) as session:
+            return session.scalars(
+                select(DBUser.chat_id)
+            ).all()
 
     def get_additives(self) -> list[str]:
-        with Session(self.engine) as session:
+        with Session(self.__engine) as session:
             return session.scalars(
                 select(DBAdditive.additive_name)
                 .join(DBAdditive.connection)
                 .where(DBConnection.user_id == self.user_id)
             ).all()
 
-            
-    def create_connection(self, additive: Additive):
-        with Session(self.engine) as session:
+    def add_additive(self, additive: Additive):
+        with Session(self.__engine) as session:
             session.add(DBConnection(
                 user_id=self.user_id,
                 additive_id=additive.additive_id,
@@ -99,8 +98,8 @@ class User:
             ))
             session.commit()
 
-    def remove_connection(self, additive: Additive):
-        with Session(self.engine) as session:
+    def del_additive(self, additive: Additive):
+        with Session(self.__engine) as session:
             session.delete(session.scalar(
                 select(DBConnection)
                 .where(DBConnection.user_id == self.user_id)
