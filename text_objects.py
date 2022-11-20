@@ -13,8 +13,8 @@ class AdditiveList(list):
         for word in self.raw_text.split(','):
             if word:
                 name = ''
-                for letter in word.lower():
-                    if letter.isalpha() or letter.isalnum():
+                for letter in word.strip().lower():
+                    if letter.isalpha() or letter.isalnum() or letter in ' -':
                         name += letter
                 if name:
                     res.append(name)
