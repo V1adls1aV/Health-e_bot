@@ -2,6 +2,7 @@ import telebot as tb
 from telebot import types
 
 from objects.additive import Additive
+from objects.eadditive import EAdditive
 from objects.user import User, GetCurrentUser
 from text_objects import AdditiveList, Composition
 from data.config import TOKEN, DESCRIPTION, ADMINS
@@ -61,7 +62,7 @@ def buttons_handler(message):
         mes = bot.send_message(message.chat.id, 
         'Пришлите фоторграфию или текст состава.')
 
-        bot.register_next_step_handler(mes, structure_analyser)
+        bot.register_next_step_handler(mes, get_composition)
 
     elif message.text == 'Чёрный список':
         markup = types.InlineKeyboardMarkup()
@@ -73,23 +74,29 @@ def buttons_handler(message):
             callback_data='add'),
             types.InlineKeyboardButton('Удалить элементы', 
             callback_data='del')
-            )  # Maybe remove keyboard after pressing a button?
+            )
 
         bot.send_message(message.chat.id, 'Выберете действие:', reply_markup=markup)
 
 
-def structure_analyser(message):
+def get_composition(message):
     if message.content_type == 'text':  # Getting evalution of text
-        user = GetCurrentUser(message)
-        comp = Composition(
-            user,
-            message.text)
-
-        bot.send_message(message.chat.id, comp.get_evaluation())
-
+        composition_analyzer(message)
     elif message.content_type == 'photo':  # AI
         bot.send_message(message.chat.id, 
         'This function will be avaliable if you buy the premium version.')
+
+
+def composition_analyzer(message):
+    user = GetCurrentUser(message)
+    comp = Composition(
+        user,
+        message.text)
+
+    markup = types.InlineKeyboardMarkup()
+    for el in comp.e_additives:
+        markup.add(types.InlineKeyboardButton(el, callback_data=el))
+    bot.send_message(message.chat.id, comp.get_evaluation(), reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda c: True)
@@ -98,33 +105,48 @@ def inline_buttons_handler(call):
         if call.data == 'get':  # Getting all exceptions
             user = GetCurrentUser(call.message)
             additives = user.get_additives_names()
-            if additives:
-                bot.send_message(call.message.chat.id, 
-                'Ваш чёрный список:\n' + ', '.join(additives))
-            else:
-                bot.send_message(call.message.chat.id, 
-                'У вас пока нет чёрного списка...')
 
-        elif call.data == 'add':  # Adding a connection/excepiton
-            mes = bot.send_message(call.message.chat.id,
-            'Пришлите названия элементов через запятую.')
+            if additives:
+                bot.edit_message_text(
+                    'Ваш чёрный список:\n' + ', '.join(additives) + '.',
+                    call.message.chat.id, call.message.id)
+            else:
+                bot.edit_message_text(
+                    'У вас пока нет чёрного списка.', 
+                    call.message.chat.id, call.message.id)
+
+        elif call.data == 'add':  # Adding a connection/additive
+            mes = bot.edit_message_text(
+                'Пришлите названия элементов через запятую.', 
+                call.message.chat.id, call.message.id
+                )
             bot.register_next_step_handler(mes, add_item)
 
-        elif call.data == 'del':  # Deleting connection/exception
-            mes = bot.send_message(call.message.chat.id,
-            'Пришлите названия элементов через запятую.')
+        elif call.data == 'del':  # Deleting connection/addititve
+            mes = bot.edit_message_text(
+                'Пришлите названия элементов через запятую.', 
+                call.message.chat.id, call.message.id
+                )
             bot.register_next_step_handler(mes, del_item)
+
+        elif call.data[0] == 'е':
+            bot.send_message(
+                call.message.chat.id,
+                EAdditive(call.data).get_description()
+                )
 
 
 def add_item(message):
     user = GetCurrentUser(message)
     names = user.get_additives_names()
     for additive_name in AdditiveList(message.text):
-        if additive_name.lower() in names:
+        if additive_name in names:
             bot.send_message(message.chat.id, 
             f'Элемент "{additive_name}" уже есть в списке.')
+        elif additive_name == 'чёрныйсписок' or additive_name == 'проверитьсостав':
+            buttons_handler(message)
         else:
-            additive = Additive(additive_name.lower())
+            additive = Additive(additive_name)
             user.add_additive(additive)
 
             bot.send_message(message.chat.id, 
@@ -138,9 +160,11 @@ def del_item(message):
         if additive_name in names:
             additive = Additive(additive_name)
             user.del_additive(additive)
-
+            
             bot.send_message(message.chat.id,
             f'Элемент "{additive_name}" успешно удалён.')
+        elif additive_name == 'чёрныйсписок' or additive_name == 'проверитьсостав':
+            buttons_handler(message)
         else:
             bot.send_message(message.chat.id, 
             f'Элемента "{additive_name}" не существует.')
