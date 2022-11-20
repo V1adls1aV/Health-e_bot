@@ -1,6 +1,6 @@
 from sql_objects import DBEAdditive
 from objects.error_objects import IncorrectArgumentsError
-from data.config import DBPATH
+from data.config import DBPATH, EADESCRIPTION
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -13,22 +13,16 @@ class EAdditive:
             if not word:
                 raise IncorrectArgumentsError()
             
-            if word[0] == 'е':  # Problem with short words
+            if word[0] == 'е':
                 item = session.scalar(
                     select(DBEAdditive)
                     .where(DBEAdditive.e_number == word)
-                )
-            elif word[0] == 'e':  # Solving problem with russian and english E letter
-                word = 'е' + word[1:]
-                item = session.scalar(
-                    select(DBEAdditive)
-                    .where(DBEAdditive.e_number == word)
-                )
+                    )
             else:
                 item = session.scalar(
                     select(DBEAdditive)
                     .where(DBEAdditive.e_name == word)
-                )
+                    )
 
             if not item:
                 raise IncorrectArgumentsError()
@@ -43,6 +37,12 @@ class EAdditive:
 
     def __repr__(self) -> str:
         return f'EAdditive(e_id="{self.e_id}", e_number="{self.e_number}", e_name="{self.e_name}")'
+
+    def get_description(self):  # How get this from Composition and InlineKeyboard?
+        return EADESCRIPTION.format(
+            self.e_name, self.e_number, self.harm, 
+            self.property, self.usage, self.influence
+            )
 
     @classmethod
     def get_e_numbers(cls) -> list[str]:
