@@ -109,7 +109,7 @@ def get_composition(message):
     elif message.content_type == 'photo':  # AI
         user = GetCurrentUser(message)
 
-        if user.is_premium():
+        if user.premium:
             image = get_image_from_message(message)
             text = image_to_string(image, lang='rus', config=TESS_CONFIG)
             print('_________________')
