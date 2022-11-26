@@ -206,7 +206,7 @@ def inline_buttons_handler(call):
             mes = bot.send_message(call.message.chat.id, 'Задайте вопрос:')
             bot.register_next_step_handler(mes, send_question)
 
-        if call.data[:12] == 'set_premium':  # This is awful...
+        elif call.data[:12] == 'set_premium':  # This is awful...
             user = GetCurrentUser(int(call.data[12:]))
             user.premium = True
 
