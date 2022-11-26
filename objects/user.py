@@ -23,13 +23,15 @@ class User:
                 user = self._create(session)
 
             self.user_id = user.user_id
+            self._premium = user.premium
             
     def __repr__(self) -> str:
-        return f'User(user_id={self.user_id}, chat_id={self.chat_id})'
+        return f'User(user_id={self.user_id}, chat_id={self.chat_id}, premium={self._premium})'
 
     def _create(self, session) -> DBUser:
         user = DBUser(
             chat_id=self.chat_id,
+            premium=False,
             user_creating_date=datetime.now()
             )
         session.add(user)
@@ -42,6 +44,15 @@ class User:
             return session.scalars(
                 select(DBUser.chat_id)
             ).all()
+
+    @property
+    def premium(self) -> bool:
+        return self._premium
+
+    @premium.setter
+    def premium(self) -> None:
+        with Session(self.__engine) as session:
+            pass # Changing database cell
 
     def remove(self) -> None:
         with Session(self.__engine) as session:

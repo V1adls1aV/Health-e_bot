@@ -30,16 +30,18 @@ class Composition(AdditiveList):
         self.additives, self.e_additives = self._find_additives()
 
     def _find_additives(self) -> list[str]:
-        ad, ead = [], []
+        ad, ead = set(), set()
         for el in self.text:
             if el[0] == 'e' and len(el) > 1:
                 el = 'е' + el[1:]  # Solving problem with russian and english E letter
 
-            if el in self.user_additives:
-                ad.append(el)
-            elif el in self.user_e_additives:
-                ead.append(el)
-        return ad, ead
+            for a in self.user_additives:
+                if a in el:
+                    ad.add(a)
+            for e in self.user_e_additives:
+                if e in el:
+                    ead.add(e)
+        return list(ad), list(ead)
 
     def get_evaluation(self) -> str:
         text = ''

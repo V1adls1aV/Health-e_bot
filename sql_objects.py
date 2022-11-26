@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship, declarative_base
 
 
@@ -62,6 +62,7 @@ class DBUser(Base):
 
     user_id = Column(Integer, primary_key=True)
     chat_id = Column(Integer)
+    premium = Column(Boolean)
     user_creating_date = Column(DateTime)
 
     connection = relationship('DBConnection', back_populates='user')
@@ -69,5 +70,5 @@ class DBUser(Base):
     def __repr__(self) -> str:
         return f'''
         DBUser(user_id={self.user_id!r}, chat_id={self.chat_id!r}, 
-        user_creating_date={self.user_creating_date!r})
+        premium={self.premium!r}, user_creating_date={self.user_creating_date!r})
         '''
