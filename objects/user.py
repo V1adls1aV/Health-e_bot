@@ -1,11 +1,10 @@
-from sql_objects import DBUser, DBAdditive, DBConnection
+from objects.sql_objects import DBUser, DBAdditive, DBConnection
 from objects.error_objects import DBConnectionsExistError
 from objects.additive import Additive
-from data.config import DBPATH
+from data.config import DBPATH, ADMINS
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
-from telebot.types import Message
 from datetime import datetime
 
 
@@ -29,9 +28,13 @@ class User:
         return f'User(user_id={self.user_id}, chat_id={self.chat_id}, premium={self._premium})'
 
     def _create(self, session) -> DBUser:
+        prem = False
+        if self.chat_id in ADMINS:
+            prem = True
+
         user = DBUser(
             chat_id=self.chat_id,
-            premium=False,
+            premium=prem,
             user_creating_date=datetime.now()
             )
         session.add(user)
@@ -45,14 +48,24 @@ class User:
                 select(DBUser.chat_id)
             ).all()
 
+    @staticmethod
+    def get_current_user(chat_id: int):
+        return User(chat_id)
+
     @property
     def premium(self) -> bool:
         return self._premium
 
     @premium.setter
-    def premium(self) -> None:
+    def premium(self, value: bool) -> None:
         with Session(self.__engine) as session:
-            pass # Changing database cell
+            user = session.scalar(
+                select(DBUser)
+                .where(DBUser.chat_id == self.chat_id)
+            )
+            user.premium = value
+            self._premium = value
+            session.commit()
 
     def remove(self) -> None:
         with Session(self.__engine) as session:
@@ -73,6 +86,12 @@ class User:
                 .join(DBAdditive.connection)
                 .where(DBConnection.user_id == self.user_id)
             ).all()
+    
+    def is_adding_avaliable(self) -> bool:
+        length = len(self.get_additives_names())
+        if self._premium and length < 100 or length < 10:
+            return True
+        return False
 
     def add_additive(self, additive: Additive) -> None:
         with Session(self.__engine) as session:
@@ -91,7 +110,3 @@ class User:
                 .where(DBConnection.additive_id == additive.additive_id)
             ))
             session.commit()
-
-
-def GetCurrentUser(message: Message) -> User:
-    return User(message.chat.id)

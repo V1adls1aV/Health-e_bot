@@ -1,5 +1,5 @@
 from objects.error_objects import DBConnectionsExistError
-from sql_objects import DBAdditive
+from objects.sql_objects import DBAdditive
 from data.config import DBPATH
 
 from sqlalchemy import create_engine, select

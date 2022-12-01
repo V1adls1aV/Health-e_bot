@@ -39,21 +39,21 @@ class DBAdditive(Base):
         '''
 
 
-class DBEAdditive(Base):
-    __tablename__ = 'e_additives'
+class DBECode(Base):
+    __tablename__ = 'ecodes'
 
     e_id = Column(Integer, primary_key=True)
     e_number = Column(String)
     e_name = Column(String)
     harm = Column(String)
-    property = Column(String)
+    feature = Column(String)
     usage = Column(String)
     influence = Column(String)
 
     def __repr__(self) -> str:
         return f'''
-        DBEAdditive(e_id={self.e_id!r}, e_number={self.e_number!r}, e_name={self.e_name!r},
-        harm=..., property=..., usage=..., influence=...)
+        DBECode(e_id={self.e_id!r}, e_number={self.e_number!r}, e_name={self.e_name!r},
+        harm=..., feature=..., usage=..., influence=...)
         '''
 
 
