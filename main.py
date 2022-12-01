@@ -1,15 +1,11 @@
 import telebot as tb
 from telebot import types
-from pytesseract import image_to_string
-from PIL.Image import open as open_image
-from random import choice
-from io import BytesIO
 
-from objects.additive import Additive
-from objects.eadditive import EAdditive
-from objects.user import User, GetCurrentUser
-from text_objects import AdditiveList, Composition
-from data.config import TOKEN, DESCRIPTION, ADMINS, TESS_CONFIG, PREMIUMTERMS
+from objects.user import User
+from data_structures import Composition, Photo
+from responders import AdditivesResponder, ECodeResponder, PremiumResponder
+from data.config import TOKEN, DESCRIPTION, ADMINS, \
+    PREMIUMTERMS, PREMIUM, CHECKCOMP, BLACKLIST
 
 
 class Admin(tb.SimpleCustomFilter):
@@ -30,15 +26,15 @@ bot.add_custom_filter(Admin())
 def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(
-        types.KeyboardButton('Проверить состав ✅'),
-        types.KeyboardButton('Чёрный список ❌'),
-        types.KeyboardButton('Премиум 👑')
+        types.KeyboardButton(CHECKCOMP),
+        types.KeyboardButton(BLACKLIST),
+        types.KeyboardButton(PREMIUM)
         )
 
-    GetCurrentUser(message)
+    User.get_current_user(message.chat.id)
     
     bot.send_message(message.chat.id, 
-    DESCRIPTION.format(message.from_user.first_name), reply_markup=markup)
+    DESCRIPTION.format(user_name=message.from_user.first_name), reply_markup=markup)
 
 
 @bot.message_handler(commands=['distribute'], is_admin=True)
@@ -65,14 +61,14 @@ def sending_news(message):
 
 @bot.message_handler(content_types=['text'])
 def buttons_handler(message):
-    if message.text == 'Проверить состав ✅':
+    if message.text == CHECKCOMP:
         mes = bot.send_message(message.chat.id, 
         'Пришлите фоторграфию или текст состава.')
 
         bot.register_next_step_handler(mes, get_composition)
 
-    elif message.text == 'Чёрный список ❌':
-        markup = types.InlineKeyboardMarkup()
+    elif message.text == BLACKLIST:
+        markup = types.InlineKeyboardMarkup(row_width=1)
 
         markup.add(
             types.InlineKeyboardButton('Получить список', 
@@ -85,7 +81,7 @@ def buttons_handler(message):
 
         bot.send_message(message.chat.id, 'Выберете действие:', reply_markup=markup)
 
-    elif message.text == 'Премиум 👑':
+    elif message.text == PREMIUM:
         markup = types.InlineKeyboardMarkup()
 
         markup.add(
@@ -102,159 +98,42 @@ def buttons_handler(message):
 
 
 def get_composition(message):
+    user = User.get_current_user(message.chat.id)
     if message.content_type == 'text':  # Getting evalution of text
-        user = GetCurrentUser(message)
-        composition_analyzer(message, message.text, user)
+        if message.text.capitalize() not in (BLACKLIST, CHECKCOMP, PREMIUM):
+            composition_analyzer(message, message.text, user)
 
     elif message.content_type == 'photo':  # AI
-        user = GetCurrentUser(message)
-
-        if user.premium:
-            image = get_image_from_message(message)
-            text = image_to_string(image, lang='rus', config=TESS_CONFIG)
-            print('_________________')
-            print('Text recognition:')
-            print(text)
-            print('_________________')
-            composition_analyzer(message, text, user)
-
-        else:
-            bot.send_message(message.chat.id, 
-            'This function will be avaliable if you buy the premium version.')
-
-
-def get_image_from_message(message):  # Get image from server
-    image_id = message.photo[-1].file_id
-    image_bytes = bot.download_file(
-        bot.get_file(image_id).file_path
-        )
-    with BytesIO(image_bytes) as stream:
-        return open_image(stream).convert('RGBA')
+        image = Photo(bot, message)
+        text = image.get_text()
+        composition_analyzer(message, text, user)
 
 
 def composition_analyzer(message, text, user):
-    comp = Composition(
-        user,
-        text)
-
-    markup = types.InlineKeyboardMarkup()
-    for el in comp.e_additives:
+    comp = Composition(text)
+    comp.set_user(user)
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    for el in comp.ecodes:
         markup.add(types.InlineKeyboardButton(el, callback_data=el))
+    
     bot.send_message(message.chat.id, comp.get_evaluation(), reply_markup=markup)
 
 
-########################### Callbacks ###########################
+#################################################################
 
 
 @bot.callback_query_handler(func=lambda c: True)
 def inline_buttons_handler(call):
     if call.message:
-        if call.data == 'get':  # Getting all exceptions
-            user = GetCurrentUser(call.message)
-            additives = user.get_additives_names()
+        responders = [
+            AdditivesResponder(bot),
+            ECodeResponder(bot),
+            PremiumResponder(bot)
+        ]
 
-            if additives:
-                bot.edit_message_text(
-                    'Ваш чёрный список:\n' + ', '.join(additives) + '.',
-                    call.message.chat.id, call.message.id)
-            else:
-                bot.edit_message_text(
-                    'У вас пока нет чёрного списка.', 
-                    call.message.chat.id, call.message.id)
-
-        elif call.data == 'add':  # Adding a connection/additive
-            mes = bot.edit_message_text(
-                'Пришлите названия элементов через запятую.', 
-                call.message.chat.id, call.message.id
-                )
-            bot.register_next_step_handler(mes, add_item)
-
-        elif call.data == 'del':  # Deleting connection/addititve
-            mes = bot.edit_message_text(
-                'Пришлите названия элементов через запятую.', 
-                call.message.chat.id, call.message.id
-                )
-            bot.register_next_step_handler(mes, del_item)
-
-        elif call.data[0] == 'е':
-            bot.send_message(
-                call.message.chat.id,
-                EAdditive(call.data).get_description()
-                )
-        
-        elif call.data == 'premium':
-            admin_chat_id = choice(ADMINS)  # Getting random admin
-            user = GetCurrentUser(call.message)
-            
-            markup = types.InlineKeyboardMarkup()
-            markup.add(
-                types.InlineKeyboardButton('✅', 
-                callback_data=f'set_premium{call.message.chat.id}'),  # This is awful...
-                types.InlineKeyboardButton('❌', 
-                callback_data=f'del_premium{call.message.chat.id}')
-                )  # How to put chat_id to Inline handler
-            
-            bot.send_message(admin_chat_id, f'''
-                Пользователь @{call.message.chat.username} запрашивает premuim.
-                Premium status: {user.premium}''',
-                reply_markup=markup)  # Sending message to admin
-
-            bot.send_message(call.message.chat.id, 
-                'Заявка отправлена, спасибо!')  # Message to user
-
-        elif call.data == 'question':
-            mes = bot.send_message(call.message.chat.id, 'Задайте вопрос:')
-            bot.register_next_step_handler(mes, send_question)
-
-        elif call.data[:12] == 'set_premium':  # This is awful...
-            user = GetCurrentUser(int(call.data[12:]))
-            user.premium = True
-
-        elif call.data[:12] == 'del_premium':  # This is awful...
-            user = GetCurrentUser(int(call.data[12:]))
-            user.premium = False
-
-
-def add_item(message):
-    user = GetCurrentUser(message)
-    names = user.get_additives_names()
-    for additive_name in AdditiveList(message.text):
-        if additive_name in names:
-            bot.send_message(message.chat.id, 
-            f'Элемент "{additive_name}" уже есть в списке.')
-        elif additive_name == 'чёрный список ✅' or additive_name == 'проверить состав ❌':
-            buttons_handler(message)
-        else:
-            additive = Additive(additive_name)
-            user.add_additive(additive)
-
-            bot.send_message(message.chat.id, 
-            f'Элемент "{additive_name}" успешно добавлен.')
-
-
-def del_item(message):
-    user = GetCurrentUser(message)
-    names = user.get_additives_names()
-    for additive_name in AdditiveList(message.text):
-        if additive_name in names:
-            additive = Additive(additive_name)
-            user.del_additive(additive)
-            
-            bot.send_message(message.chat.id,
-            f'Элемент "{additive_name}" успешно удалён.')
-        elif additive_name == 'чёрный список ✅' or additive_name == 'проверить состав ❌':
-            buttons_handler(message)
-        else:
-            bot.send_message(message.chat.id, 
-            f'Элемента "{additive_name}" не существует.')
-
-
-def send_question(message):
-    chat_id = choice(ADMINS)  # Getting random admin
-    bot.send_message(chat_id, f'''
-        Пользователь @{message.from_user.username} задал вопрос:
-        {message.text}'''
-        )  # Maybe add reply for admin in the future
+        for responder in responders:
+            if responder.handle(call):
+                break
 
 
 bot.infinity_polling()  # Running
