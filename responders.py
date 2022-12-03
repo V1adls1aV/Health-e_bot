@@ -7,7 +7,8 @@ from objects.user import User
 from objects.ecode import ECode
 from objects.additive import Additive
 from data_structures import AdditiveList
-from data.config import BLACKLIST, CHECKCOMP, PREMIUM, ADMINS, BLACKLISTOVERFLOW
+from data.config import BLACKLIST, CHECKCOMP, PREMIUM, \
+    ADMINS, BLACKLISTOVERFLOW, FEEDBACK
 
 
 class InlineResponder:
@@ -127,7 +128,7 @@ class PremiumResponder(InlineResponder):
                 callback_data=set_p),
                 types.InlineKeyboardButton('❌', 
                 callback_data=del_p)
-                )  # How to put chat_id to Inline handler
+                )
             
             self.bot.send_message(admin_chat_id, f'''
                 Пользователь @{call.message.chat.username} запрашивает premuim.\nPremium status: {user.premium}''',
@@ -137,9 +138,9 @@ class PremiumResponder(InlineResponder):
                 'Заявка отправлена, спасибо!')  # Message to user
             return True
         
-        elif call.data == 'question':
-            mes = self.bot.send_message(call.message.chat.id, 'Задайте вопрос:')
-            self.bot.register_next_step_handler(mes, self.send_question)
+        elif call.data == 'feedback':
+            mes = self.bot.send_message(call.message.chat.id, FEEDBACK)
+            self.bot.register_next_step_handler(mes, self.send_feedback)
             return True
 
         elif json.loads(call.data)['type'] == 'set':
@@ -164,10 +165,9 @@ class PremiumResponder(InlineResponder):
         return False
 
 
-    def send_question(self, message):
+    def send_feedback(self, message):
         if message.text not in (BLACKLIST, CHECKCOMP, PREMIUM):       
             chat_id = choice(ADMINS)  # Getting random admin
             self.bot.send_message(chat_id, f'''
-                Пользователь @{message.from_user.username} задал вопрос:
-                {message.text}'''
+                Пользователь @{message.from_user.username} оставил отзыв:\n{message.text}'''
                 )  # Maybe add reply for admin in the future

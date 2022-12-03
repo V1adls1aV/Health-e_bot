@@ -19,7 +19,7 @@ class DBConnection(Base):
     def __repr__(self) -> str:
         return f'''
         DBConnection(connection_id={self.connection_id!r}, 
-        user_id={self.user_id!r}, additive_id={self.exception_id!r}, 
+        user_id={self.user_id!r}, additive_id={self.additive_id!r}, 
         connection_creating_date={self.connection_creating_date!r})
         '''
 
