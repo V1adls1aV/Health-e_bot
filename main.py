@@ -61,7 +61,8 @@ def sending_news(message):
 
 @bot.message_handler(commands=['statistics'], is_admin=True)
 def get_statistics(message):
-    bot.send_message(message.chat.id, 'Any data')
+    bot.send_message(message.chat.id, 
+    f'Количество пользователей: {len(User.get_chats_ids())}')
 
 
 @bot.message_handler(content_types=['text'])
