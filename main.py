@@ -59,6 +59,11 @@ def sending_news(message):
     ''')
 
 
+@bot.message_handler(commands=['statistics'], is_admin=True)
+def get_statistics(message):
+    bot.send_message(message.chat.id, 'Any data')
+
+
 @bot.message_handler(content_types=['text'])
 def buttons_handler(message):
     if message.text == CHECKCOMP:
@@ -87,8 +92,8 @@ def buttons_handler(message):
         markup.add(
             types.InlineKeyboardButton('Отправить заявку', 
             callback_data='premium'),
-            types.InlineKeyboardButton('Задать вопрос', 
-            callback_data='question'),
+            types.InlineKeyboardButton('Оставить отзыв', 
+            callback_data='feedback'),
             )
 
         bot.send_message(message.chat.id, PREMIUMTERMS, reply_markup=markup)
