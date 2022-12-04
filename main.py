@@ -3,7 +3,9 @@ from telebot import types
 
 from objects.user import User
 from data_structures import Composition, Photo
-from responders import AdditivesResponder, ECodeResponder, PremiumResponder
+from responders.ecode_resp import ECodeResponder
+from responders.premium_resp import PremiumResponder
+from responders.additive_resp import AdditivesResponder
 from data.config import TOKEN, DESCRIPTION, ADMINS, \
     PREMIUMTERMS, PREMIUM, CHECKCOMP, BLACKLIST
 
