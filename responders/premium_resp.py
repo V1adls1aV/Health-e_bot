@@ -5,7 +5,7 @@ import json
 
 from objects.user import User
 from responders.inline_resp import InlineResponder
-from data.config import BLACKLIST, CHECKCOMP, PREMIUM, ADMINS, FEEDBACK
+from data.config import ADMINS
 
 
 class PremiumResponder(InlineResponder):
@@ -15,11 +15,6 @@ class PremiumResponder(InlineResponder):
     def handle(self, call) -> bool:
         if call.data == 'premium':
             self._premium_call(call.message)
-            return True
-        
-        elif call.data == 'feedback':
-            mes = self.bot.send_message(call.message.chat.id, FEEDBACK)
-            self.bot.register_next_step_handler(mes, self._send_feedback)
             return True
 
         elif json.loads(call.data)['type'] == 'set':
@@ -76,11 +71,3 @@ class PremiumResponder(InlineResponder):
                 message.text.replace('True', 'False'),
                 message.chat.id, message.id, 
                 reply_markup=message.reply_markup)
-
-
-    def _send_feedback(self, message):
-        if message.text not in (BLACKLIST, CHECKCOMP, PREMIUM):       
-            chat_id = choice(ADMINS)  # Getting random admin
-            self.bot.send_message(chat_id, f'''
-                Пользователь @{message.from_user.username} оставил отзыв:\n{message.text}'''
-                )  # Maybe add reply for admin in the future

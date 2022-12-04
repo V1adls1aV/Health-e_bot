@@ -1,5 +1,6 @@
 import telebot as tb
 from telebot import types
+from random import choice
 
 from objects.user import User
 from data_structures import Composition, Photo
@@ -7,7 +8,7 @@ from responders.ecode_resp import ECodeResponder
 from responders.premium_resp import PremiumResponder
 from responders.additive_resp import AdditivesResponder
 from data.config import TOKEN, DESCRIPTION, ADMINS, \
-    PREMIUMTERMS, PREMIUM, CHECKCOMP, BLACKLIST
+    PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, FEEDBACKTEXT
 
 
 class Admin(tb.SimpleCustomFilter):
@@ -17,7 +18,7 @@ class Admin(tb.SimpleCustomFilter):
         return message.chat.id in ADMINS
 
 
-bot = tb.TeleBot(TOKEN, parse_mode='HTML')  # initializing bot
+bot = tb.TeleBot(TOKEN, parse_mode='Markdown')  # initializing bot
 bot.add_custom_filter(Admin())
 
 
@@ -28,7 +29,7 @@ bot.add_custom_filter(Admin())
 def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(
-        types.KeyboardButton(CHECKCOMP),
+        types.KeyboardButton(FEEDBACK),
         types.KeyboardButton(BLACKLIST),
         types.KeyboardButton(PREMIUM)
         )
@@ -67,15 +68,9 @@ def get_statistics(message):
     f'Количество пользователей: {len(User.get_chats_ids())}')
 
 
-@bot.message_handler(content_types=['text'])
+@bot.message_handler(content_types=['text', 'photo'])
 def buttons_handler(message):
-    if message.text == CHECKCOMP:
-        mes = bot.send_message(message.chat.id, 
-        'Пришлите фоторграфию или текст состава.')
-
-        bot.register_next_step_handler(mes, get_composition)
-
-    elif message.text == BLACKLIST:
+    if message.text == BLACKLIST:
         markup = types.InlineKeyboardMarkup(row_width=1)
 
         markup.add(
@@ -94,30 +89,35 @@ def buttons_handler(message):
 
         markup.add(
             types.InlineKeyboardButton('Отправить заявку', 
-            callback_data='premium'),
-            types.InlineKeyboardButton('Оставить отзыв', 
-            callback_data='feedback'),
+            callback_data='premium')
             )
 
         bot.send_message(message.chat.id, PREMIUMTERMS, reply_markup=markup)
 
+    elif message.text == FEEDBACK:
+            mes = bot.send_message(message.chat.id, FEEDBACKTEXT)
+            bot.register_next_step_handler(mes, send_feedback)
 
-##################### Composition analyzing #####################
-
-
-def get_composition(message):
-    user = User.get_current_user(message.chat.id)
-    if message.content_type == 'text':  # Getting evalution of text
-        if message.text.capitalize() not in (BLACKLIST, CHECKCOMP, PREMIUM):
-            composition_analyzer(message, message.text, user)
+    elif message.content_type == 'text':  # Getting evalution of text
+        user = User.get_current_user(message.chat.id)
+        composition_analyzer(message, message.text, user)
 
     elif message.content_type == 'photo':  # AI
+        user = User.get_current_user(message.chat.id)
         image = Photo(bot, message)
+
         text = image.get_text()
         composition_analyzer(message, text, user)
 
 
-def composition_analyzer(message, text, user):
+def send_feedback(message):
+        chat_id = choice(ADMINS)  # Getting random admin
+        bot.send_message(chat_id, f'''
+            Пользователь @{message.from_user.username} оставил отзыв:\n{message.text}'''
+            )  # Maybe add reply for admin in the future
+
+
+def composition_analyzer(message, text, user):  # Composition analyzing
     comp = Composition(text)
     comp.set_user(user)
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -127,11 +127,8 @@ def composition_analyzer(message, text, user):
     bot.send_message(message.chat.id, comp.get_evaluation(), reply_markup=markup)
 
 
-#################################################################
-
-
 @bot.callback_query_handler(func=lambda c: True)
-def inline_buttons_handler(call):
+def inline_buttons_handler(call):  # Inline buttons handling
     if call.message:
         responders = [
             AdditivesResponder(bot),
