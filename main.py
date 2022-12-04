@@ -1,7 +1,13 @@
 import telebot as tb
 from telebot import types
-from db_editors import UserEditor, ExceptionEditor
-from data.config import TOKEN, DESCRIPTION, ADMINS
+
+from objects.user import User
+from data_structures import Composition, Photo
+from responders.ecode_resp import ECodeResponder
+from responders.premium_resp import PremiumResponder
+from responders.additive_resp import AdditivesResponder
+from data.config import TOKEN, DESCRIPTION, ADMINS, \
+    PREMIUMTERMS, PREMIUM, CHECKCOMP, BLACKLIST
 
 
 class Admin(tb.SimpleCustomFilter):
@@ -13,23 +19,24 @@ class Admin(tb.SimpleCustomFilter):
 
 bot = tb.TeleBot(TOKEN, parse_mode='HTML')  # initializing bot
 bot.add_custom_filter(Admin())
-user_ed = UserEditor()
-exception_ed = ExceptionEditor()
+
+
+####################### Message handlers ########################
 
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(
-        types.KeyboardButton('Проверить состав'),
-        types.KeyboardButton('Чёрный список')
-    )
+        types.KeyboardButton(CHECKCOMP),
+        types.KeyboardButton(BLACKLIST),
+        types.KeyboardButton(PREMIUM)
+        )
 
-    if not user_ed.get_user_id(message.chat.id):
-        user_ed.create_user(message.chat.id)  # Adding user
+    User.get_current_user(message.chat.id)
     
     bot.send_message(message.chat.id, 
-    DESCRIPTION.format(message.from_user.first_name), reply_markup=markup)
+    DESCRIPTION.format(user_name=message.from_user.first_name), reply_markup=markup)
 
 
 @bot.message_handler(commands=['distribute'], is_admin=True)
@@ -40,52 +47,36 @@ def distribute_news(message):
 
 def sending_news(message):
     amount = 0
-    removements = 0
-    for chat_id in user_ed.get_chats_ids():
+    for chat_id in User.get_chats_ids():
         try:
             bot.send_message(chat_id, message.text)
             amount += 1
-        except:
-            us_id = user_ed.get_user_id(chat_id)
-            exs = user_ed.get_user_exceptions(us_id)  # It will be good to return ex ids
-            user_ed.remove_user(us_id)
-            removements += 1
-
-            for ex in exs:
-                ex_id = exception_ed.get_exception_id(ex)
-                if not exception_ed.get_exception_users(ex_id):
-                    exception_ed.remove_exception(ex_id)
+        except:  # User has banned the bot
+            pass
 
     bot.send_message(message.chat.id, 
     f'''
     Успешно.
     Количество рассылок: {str(amount)}.
-    Удалённых пользователей: {str(removements)}.
     ''')
 
 
-@bot.message_handler(commands=['stop'])
-def remove_chat(message):
-    us_id = user_ed.get_user_id(message.chat.id)
-    exs = user_ed.get_user_exceptions(us_id)  # It will be good to return ex ids
-    user_ed.remove_user(us_id)
+@bot.message_handler(commands=['statistics'], is_admin=True)
+def get_statistics(message):
+    bot.send_message(message.chat.id, 
+    f'Количество пользователей: {len(User.get_chats_ids())}')
 
-    for ex in exs:
-        ex_id = exception_ed.get_exception_id(ex)
-        if not exception_ed.get_exception_users(ex_id):
-            exception_ed.remove_exception(ex_id)
-    
 
 @bot.message_handler(content_types=['text'])
 def buttons_handler(message):
-    if message.text == 'Проверить состав':
+    if message.text == CHECKCOMP:
         mes = bot.send_message(message.chat.id, 
         'Пришлите фоторграфию или текст состава.')
 
-        bot.register_next_step_handler(mes, structure_analyser)
+        bot.register_next_step_handler(mes, get_composition)
 
-    elif message.text == 'Чёрный список':
-        markup = types.InlineKeyboardMarkup()
+    elif message.text == BLACKLIST:
+        markup = types.InlineKeyboardMarkup(row_width=1)
 
         markup.add(
             types.InlineKeyboardButton('Получить список', 
@@ -94,81 +85,63 @@ def buttons_handler(message):
             callback_data='add'),
             types.InlineKeyboardButton('Удалить элементы', 
             callback_data='del')
-        )
+            )
 
         bot.send_message(message.chat.id, 'Выберете действие:', reply_markup=markup)
 
+    elif message.text == PREMIUM:
+        markup = types.InlineKeyboardMarkup()
 
-def structure_analyser(message):
-    if message.content_type == 'text':  # Call text analyser (with all user exceptions)
-        bot.send_message(message.chat.id, 
-        'It will be introduced some time later...')
+        markup.add(
+            types.InlineKeyboardButton('Отправить заявку', 
+            callback_data='premium'),
+            types.InlineKeyboardButton('Оставить отзыв', 
+            callback_data='feedback'),
+            )
+
+        bot.send_message(message.chat.id, PREMIUMTERMS, reply_markup=markup)
+
+
+##################### Composition analyzing #####################
+
+
+def get_composition(message):
+    user = User.get_current_user(message.chat.id)
+    if message.content_type == 'text':  # Getting evalution of text
+        if message.text.capitalize() not in (BLACKLIST, CHECKCOMP, PREMIUM):
+            composition_analyzer(message, message.text, user)
 
     elif message.content_type == 'photo':  # AI
-        bot.send_message(message.chat.id, 
-        'This function will be avaliable if you buy the premium version.')
+        image = Photo(bot, message)
+        text = image.get_text()
+        composition_analyzer(message, text, user)
+
+
+def composition_analyzer(message, text, user):
+    comp = Composition(text)
+    comp.set_user(user)
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    for el in comp.ecodes:
+        markup.add(types.InlineKeyboardButton(el, callback_data=el))
+    
+    bot.send_message(message.chat.id, comp.get_evaluation(), reply_markup=markup)
+
+
+#################################################################
 
 
 @bot.callback_query_handler(func=lambda c: True)
 def inline_buttons_handler(call):
     if call.message:
-        if call.data == 'get':  # Getting all exceptions
-            exceptions = user_ed.get_user_exceptions(
-                        user_ed.get_user_id(call.message.chat.id)
-            )
-            if exceptions:
-                bot.send_message(call.message.chat.id, 
-                'Ваш чёрный список:\n' + ', '.join(exceptions))
-            else:
-                bot.send_message(call.message.chat.id, 
-                'У вас пока нет чёрного списка...')
+        responders = [
+            AdditivesResponder(bot),
+            ECodeResponder(bot),
+            PremiumResponder(bot)
+        ]
 
-        elif call.data == 'add':  # Adding a connection/excepiton
-            mes = bot.send_message(call.message.chat.id,
-            'Пришлите названия элементов.')
-            bot.register_next_step_handler(mes, add_item)
-
-        elif call.data == 'del':  # Deleting connection/exception
-            mes = bot.send_message(call.message.chat.id,
-            'Пришлите названия элементов.')
-            bot.register_next_step_handler(mes, del_item)
-
-
-def add_item(message):
-    for ex in message.text.split(', '):
-        ex_id = exception_ed.get_exception_id(ex.lower())
-        if not ex_id:
-            ex_id = exception_ed.create_exception(ex.lower())
-
-        if ex in user_ed.get_user_exceptions(
-            user_ed.get_user_id(message.chat.id)):  # Return ex ids 3/4(5) usings
-            bot.send_message(message.chat.id, 
-            f'Элемент "{ex}" уже есть в списке.')
-        else:
-            user_ed.create_connection(
-                user_ed.get_user_id(message.chat.id),
-                ex_id
-            )
-
-            bot.send_message(message.chat.id, 
-            f'Элемент "{ex}" успешно добавлен.')
-
-
-def del_item(message):
-    for ex in message.text.split(', '):
-        ex_id = exception_ed.get_exception_id(ex.lower())
-        if ex_id:
-            user_ed.remove_connection(
-                user_ed.get_user_id(message.chat.id), ex_id)
-            
-            if not exception_ed.get_exception_users(ex_id):
-                exception_ed.remove_exception(ex_id)
-
-            bot.send_message(message.chat.id,
-            f'Элемент "{ex}" успешно удалён.')
-        else:
-            bot.send_message(message.chat.id, 
-            f'Элемента "{ex}" не существует.')
+        for responder in responders:
+            if responder.handle(call):
+                break
 
 
 bot.infinity_polling()  # Running
