@@ -4,7 +4,7 @@ from objects.user import User
 from objects.additive import Additive
 from data_structures import AdditiveList
 from responders.inline_resp import InlineResponder
-from data.config import BLACKLIST, CHECKCOMP, PREMIUM, BLACKLISTOVERFLOW
+from data.config import BLACKLISTOVERFLOW
 
 
 class AdditivesResponder(InlineResponder):
@@ -60,7 +60,7 @@ class AdditivesResponder(InlineResponder):
             if additive_name in names:
                 self.bot.send_message(message.chat.id, 
                 f'Элемент "{additive_name}" уже есть в списке.')
-            elif additive_name.capitalize() not in (BLACKLIST, CHECKCOMP, PREMIUM):
+            else:
                 if user.is_adding_avaliable():
                     additive = Additive(additive_name)
                     user.add_additive(additive)
@@ -90,6 +90,6 @@ class AdditivesResponder(InlineResponder):
                 
                 self.bot.send_message(message.chat.id,
                 f'Элемент "{additive_name}" успешно удалён.')
-            elif additive_name.capitalize() not in (BLACKLIST, CHECKCOMP, PREMIUM):
+            else:
                 self.bot.send_message(message.chat.id, 
                 f'Элемента "{additive_name}" не существует.')

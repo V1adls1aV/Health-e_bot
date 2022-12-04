@@ -1,7 +1,7 @@
 from objects.sql_objects import DBUser, DBAdditive, DBConnection
 from objects.error_objects import DBConnectionsExistError
 from objects.additive import Additive
-from data.config import DBPATH, ADMINS
+from data.config import DBPATH, ADMINS, PREMIUMLIMIT, ADDITIVELIMIT
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -89,7 +89,8 @@ class User:
     
     def is_adding_avaliable(self) -> bool:
         length = len(self.get_additives_names())
-        if self._premium and length < 100 or length < 10:
+        if self._premium and \
+            length < PREMIUMLIMIT or length < ADDITIVELIMIT:
             return True
         return False
 
