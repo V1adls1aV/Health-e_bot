@@ -81,11 +81,11 @@ class User:
 
     def get_additives_names(self) -> list[str] or None:
         with Session(self.__engine) as session:
-            return session.scalars(
+            return list(map(str, session.scalars(
                 select(DBAdditive.additive_name)
                 .join(DBAdditive.connection)
                 .where(DBConnection.user_id == self.user_id)
-            ).all()
+            ).all()))
     
     def is_adding_avaliable(self) -> bool:
         length = len(self.get_additives_names())
