@@ -4,7 +4,7 @@ from objects.user import User
 from objects.additive import Additive
 from data_structures import AdditiveList
 from responders.inline_resp import InlineResponder
-from data.config import BLACKLISTOVERFLOW
+from data.config import BLACKLISTOVERFLOW, FEEDBACK, BLACKLIST, PREMIUM
 
 
 class AdditivesResponder(InlineResponder):
@@ -32,18 +32,30 @@ class AdditivesResponder(InlineResponder):
 
         if additives:
             self.bot.edit_message_text(
-                'Ваш чёрный список:\n' + ', '.join(additives) + '.',
+                'Твой чёрный список:\n' + ', '.join(additives) + '.',
                 message.chat.id, message.id)
         else:
             self.bot.edit_message_text(
-                'У вас пока нет чёрного списка.', 
+                'У тебя нет чёрного списка...', 
                 message.chat.id, message.id)
+
+    def _current_additive_list(self, id):
+        user = User.get_current_user(id)
+        additives = user.get_additives_names()
+
+        if additives:
+            self.bot.send_message(id, 'Твой чёрный список:\n' + \
+                ', '.join(additives) + '.')
+        else:
+            self.bot.send_message(id, 
+            'У тебя нет чёрного списка(')
     
+
     def _add_call(self, message):  # Adding a connection/additive
         user = User.get_current_user(message.chat.id)
         if user.is_adding_avaliable():
             mes = self.bot.edit_message_text(
-                'Пришлите названия элементов через запятую.', 
+                'Пришли названия элементов через запятую', 
                 message.chat.id, message.id
                 )
             self.bot.register_next_step_handler(mes, self._add_item)
@@ -54,33 +66,39 @@ class AdditivesResponder(InlineResponder):
                 )
 
     def _add_item(self, message):
+        if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
+            return
         user = User.get_current_user(message.chat.id)
         names = user.get_additives_names()
         for additive_name in AdditiveList(message.text):
             if additive_name in names:
                 self.bot.send_message(message.chat.id, 
-                f'Элемент "{additive_name}" уже есть в списке.')
+                f'Элемент "{additive_name}" уже есть в списке')
             else:
                 if user.is_adding_avaliable():
                     additive = Additive(additive_name)
                     user.add_additive(additive)
 
                     self.bot.send_message(message.chat.id, 
-                    f'Элемент "{additive_name}" успешно добавлен.')
+                    f'Элемент "{additive_name}" успешно добавлен')
                 else:
                     self.bot.send_message(message.chat.id, BLACKLISTOVERFLOW)
                     break
 
+        self._current_additive_list(message.chat.id)
+        # Info about current black list
+
 
     def _del_call(self, message):  # Deleting connection/addititve
         mes = self.bot.edit_message_text(
-            'Пришлите названия элементов через запятую.', 
+            'Пришли названия элементов через запятую', 
             message.chat.id, message.id
             )
         self.bot.register_next_step_handler(mes, self._del_item)
 
-
     def _del_item(self, message):
+        if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
+            return
         user = User.get_current_user(message.chat.id)
         names = user.get_additives_names()
         for additive_name in AdditiveList(message.text):
@@ -89,7 +107,10 @@ class AdditivesResponder(InlineResponder):
                 user.del_additive(additive)
                 
                 self.bot.send_message(message.chat.id,
-                f'Элемент "{additive_name}" успешно удалён.')
+                f'Элемент "{additive_name}" успешно удалён')
             else:
                 self.bot.send_message(message.chat.id, 
-                f'Элемента "{additive_name}" не существует.')
+                f'Элемент "{additive_name}" был удалён ранее')
+
+        self._current_additive_list(message.chat.id)
+        # Info about current black list

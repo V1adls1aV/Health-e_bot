@@ -56,10 +56,7 @@ def sending_news(message):
             pass
 
     bot.send_message(message.chat.id, 
-    f'''
-    Успешно.
-    Количество рассылок: {str(amount)}.
-    ''')
+    f'Количество рассылок: {amount}')
 
 
 @bot.message_handler(commands=['statistics'], is_admin=True)
@@ -82,7 +79,7 @@ def buttons_handler(message):
             callback_data='del')
             )
 
-        bot.send_message(message.chat.id, 'Выберете действие:', reply_markup=markup)
+        bot.send_message(message.chat.id, 'Выбери действие:', reply_markup=markup)
 
     elif message.text == PREMIUM:
         markup = types.InlineKeyboardMarkup()
@@ -99,6 +96,9 @@ def buttons_handler(message):
             bot.register_next_step_handler(mes, send_feedback)
 
     elif message.content_type == 'text':  # Getting evalution of text
+        if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
+            buttons_handler(message)
+            return
         user = User.get_current_user(message.chat.id)
         composition_analyzer(message, message.text, user)
 
@@ -111,10 +111,13 @@ def buttons_handler(message):
 
 
 def send_feedback(message):
-        chat_id = choice(ADMINS)  # Getting random admin
-        bot.send_message(chat_id, f'''
-            Пользователь @{message.from_user.username} оставил отзыв:\n{message.text}'''
-            )  # Maybe add reply for admin in the future
+    if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
+        buttons_handler(message)
+        return
+    chat_id = choice(ADMINS)  # Getting random admin
+    bot.send_message(chat_id, f'''
+        Пользователь @{message.from_user.username} оставил отзыв:\n{message.text}'''
+        )  # Maybe add reply for admin in the future
 
 
 def composition_analyzer(message, text, user):  # Composition analyzing
