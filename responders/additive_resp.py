@@ -13,14 +13,17 @@ class AdditivesResponder(InlineResponder):
 
     def handle(self, call) -> bool:
         if call.data == 'get':
+            print(f'GET handler for {call.message.chat.id}')
             self._get_call(call.message)
             return True
 
         elif call.data == 'add':
+            print(f'ADD handler for {call.message.chat.id}')
             self._add_call(call.message)
             return True
         
         elif call.data == 'del':
+            print(f'DEL handler for {call.message.chat.id}')
             self._del_call(call.message)
             return True
         return False

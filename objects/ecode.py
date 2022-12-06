@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 
 class ECode:
-    __engine = create_engine(DBPATH, echo=True, future=True)
+    __engine = create_engine(DBPATH, future=True)
     def __init__(self, e_number: str) -> None:
         with Session(self.__engine) as session:
             item = session.scalar(
@@ -29,6 +29,7 @@ class ECode:
         return f'ECode(e_id="{self.e_id}", e_number="{self.e_number}", e_name="{self.e_name}")'
 
     def get_description(self):
+        print(f'Making description for {self.e_number}')
         return ECODEDESCRIPTION.format(
             e_name=self.e_name, e_number=self.e_number, harm=self.harm, 
             feature=self.feature, usage=self.usage, influence=self.influence

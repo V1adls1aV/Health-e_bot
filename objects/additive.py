@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 
 class Additive:
-    __engine = create_engine(DBPATH, echo=True, future=True)
+    __engine = create_engine(DBPATH, future=True)
     def __init__(self, additive_name: str) -> None:
         self.additive_name = additive_name
         with Session(self.__engine) as session:     
@@ -25,14 +25,16 @@ class Additive:
         return f'Additive(additive_id={self.additive_id}, additive_name="{self.additive_name}")'
 
     def _create(self, session) -> DBAdditive:
-            additive = DBAdditive(
-                    additive_name=self.additive_name
-                )
-            session.add(additive)
-            session.commit()
-            return additive
+        print(f'Creating additive "{self.additive_name}"')
+        additive = DBAdditive(
+                additive_name=self.additive_name
+            )
+        session.add(additive)
+        session.commit()
+        return additive
 
     def remove(self) -> None:
+        print(f'Removing additive "{self.additive_name}"')
         with Session(self.__engine) as session:
             additive = session.scalar(
                 select(DBAdditive)
@@ -44,3 +46,4 @@ class Additive:
 
             session.delete(additive)
             session.commit()
+            
