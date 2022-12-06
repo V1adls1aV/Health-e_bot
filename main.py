@@ -18,7 +18,7 @@ class Admin(tb.SimpleCustomFilter):
         return message.chat.id in ADMINS
 
 
-bot = tb.TeleBot(TOKEN, parse_mode='Markdown')  # initializing bot
+bot = tb.TeleBot(TOKEN, parse_mode='HTML')  # initializing bot
 bot.add_custom_filter(Admin())
 
 
