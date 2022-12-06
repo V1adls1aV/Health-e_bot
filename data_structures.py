@@ -14,6 +14,7 @@ class Photo:
         self.image = self._get_image()
 
     def _get_image(self):  # Get image from server
+        print("Getting image from server")
         image_id = self.message.photo[-1].file_id
         image_bytes = self.bot.download_file(
             self.bot.get_file(image_id).file_path
@@ -22,9 +23,10 @@ class Photo:
             return open_image(stream).convert('RGBA')
 
     def get_text(self):
+        print('Getting text from image')
         text = image_to_string(self.image, lang='rus', config=TESS_CONFIG)
         print('__________________________________')
-        print('Text recognition:')
+        print('Recognized text:')
         print(text)
         print('__________________________________')
         return text
@@ -37,6 +39,7 @@ class AdditiveList(list):
         super().__init__(self.text)
 
     def _filter_text(self) -> list[str]:  # Filter the text
+        print('Filtering the text')
         res = []
         for word in self.raw_text.split(','):
             if word:
@@ -46,6 +49,7 @@ class AdditiveList(list):
                         name += letter
                 if name:
                     res.append(name.strip())
+        print(f'Filtered text: {res}')
         return res
 
 
@@ -56,6 +60,7 @@ class Composition(AdditiveList):
         self.user_additives = None
         self.additives = None
         self.ecodes = None
+        self.user_id = None
 
     def _find_additives(self) -> list[str] or None:
         ad, eco = set(), set()
@@ -75,10 +80,12 @@ class Composition(AdditiveList):
         return list(ad), list(eco)
 
     def set_user(self, user: User):
+        self.chat_id = user.chat_id
         self.user_additives = user.get_additives_names()
         self.additives, self.ecodes = self._find_additives()
 
     def get_evaluation(self) -> str:
+        print(f'Getting evalution for {self.chat_id}')
         text = ''
         if self.additives:
             text += 'Из вашего чёрного списка:\n' + ', '.join(self.additives)

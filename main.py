@@ -115,9 +115,15 @@ def send_feedback(message):
         buttons_handler(message)
         return
     chat_id = choice(ADMINS)  # Getting random admin
-    bot.send_message(chat_id, f'''
-        Пользователь @{message.from_user.username} оставил отзыв:\n{message.text}'''
-        )  # Maybe add reply for admin in the future
+    
+    if message.content_type == 'photo':
+        image = Photo(bot, message)
+        bot.send_photo(chat_id, image.image, 
+        f'Пользователь @{message.from_user.username} оставил отзыв:\n{message.caption}')
+    else:
+        bot.send_message(chat_id, f'''
+            Пользователь @{message.from_user.username} оставил отзыв:\n{message.text}'''
+            )  # Maybe add reply for admin in the future
 
 
 def composition_analyzer(message, text, user):  # Composition analyzing
