@@ -65,6 +65,8 @@ class PremiumResponder(InlineResponder):
                 message.text.replace('False', 'True'),
                 message.chat.id, message.id, 
                 reply_markup=message.reply_markup)
+            self.bot.send_message(chat_id, 'Теперь у тебя есть premium!')
+            
 
     def _del_premium(self, message, chat_id):
         user = User.get_current_user(chat_id)
@@ -74,3 +76,4 @@ class PremiumResponder(InlineResponder):
                 message.text.replace('True', 'False'),
                 message.chat.id, message.id, 
                 reply_markup=message.reply_markup)
+            self.bot.send_message(chat_id, 'Теперь у тебя нет premium(')
