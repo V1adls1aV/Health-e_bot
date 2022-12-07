@@ -50,6 +50,14 @@ class User:
                 select(DBUser.chat_id)
             ).all()
 
+    @classmethod
+    def get_creating_dates(cls) -> list[int]:
+        print('Getting all creating dates')
+        with Session(cls.__engine) as session:
+            return session.scalars(
+                select(DBUser.user_creating_date)
+            ).all()
+
     @staticmethod
     def get_current_user(chat_id: int):
         print(f'Getting user {chat_id}')

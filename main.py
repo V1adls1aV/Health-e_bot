@@ -1,9 +1,10 @@
 import telebot as tb
 from telebot import types
 from random import choice
+import matplotlib
 
 from objects.user import User
-from data_structures import Composition, Photo
+from data_structures import Composition, Photo, Graph
 from responders.ecode_resp import ECodeResponder
 from responders.premium_resp import PremiumResponder
 from responders.additive_resp import AdditivesResponder
@@ -20,6 +21,7 @@ class Admin(tb.SimpleCustomFilter):
 
 bot = tb.TeleBot(TOKEN, parse_mode='HTML')  # initializing bot
 bot.add_custom_filter(Admin())
+matplotlib.use('agg')  # Setting not interactive backend
 
 
 ####################### Message handlers ########################
@@ -61,8 +63,11 @@ def sending_news(message):
 
 @bot.message_handler(commands=['statistics'], is_admin=True)
 def get_statistics(message):
-    bot.send_message(message.chat.id, 
-    f'Количество пользователей: {len(User.get_chats_ids())}')
+    graph = Graph(
+        User.get_creating_dates()
+        )
+    bot.send_photo(message.chat.id, graph.get_image(), 
+        f'Всего пользователей: {graph.res}')
 
 
 @bot.message_handler(content_types=['text', 'photo'])
