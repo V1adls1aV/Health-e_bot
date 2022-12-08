@@ -1,4 +1,5 @@
 from telebot import TeleBot
+from datetime import datetime
 
 from objects.ecode import ECode
 from responders.inline_resp import InlineResponder
@@ -10,7 +11,7 @@ class ECodeResponder(InlineResponder):
 
     def handle(self, call) -> bool:
         if call.data[0] == 'е':
-            print(f'ECODE handler for {call.data}')
+            print(f'{datetime.now()} --- ECODE handler for {call.data}')
             self.bot.send_message(
                 call.message.chat.id,
                 ECode(call.data).get_description()

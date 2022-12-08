@@ -4,6 +4,7 @@ from data.config import DBPATH
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 
 class Additive:
@@ -25,7 +26,7 @@ class Additive:
         return f'Additive(additive_id={self.additive_id}, additive_name="{self.additive_name}")'
 
     def _create(self, session) -> DBAdditive:
-        print(f'Creating additive "{self.additive_name}"')
+        print(f'{datetime.now()} --- Creating additive "{self.additive_name}"')
         additive = DBAdditive(
                 additive_name=self.additive_name
             )
@@ -34,7 +35,7 @@ class Additive:
         return additive
 
     def remove(self) -> None:
-        print(f'Removing additive "{self.additive_name}"')
+        print(f'{datetime.now()} --- Removing additive "{self.additive_name}"')
         with Session(self.__engine) as session:
             additive = session.scalar(
                 select(DBAdditive)

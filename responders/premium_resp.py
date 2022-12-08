@@ -1,6 +1,7 @@
 from telebot import TeleBot
 from telebot import types
 from random import choice
+from datetime import datetime
 import json
 
 from objects.user import User
@@ -14,20 +15,20 @@ class PremiumResponder(InlineResponder):
     
     def handle(self, call) -> bool:
         if call.data == 'premium':
-            print(f'PREMIUM handler for {call.message.chat.id}')
+            print(f'{datetime.now()} --- PREMIUM handler for {call.message.chat.id}')
             self._premium_call(call.message)
             return True
 
         elif json.loads(call.data)['type'] == 'set':
             chat_id = json.loads(call.data)['chat_id']
-            print(f'SET PREMIUM handler for {chat_id}')
+            print(f'{datetime.now()} --- SET PREMIUM handler for {chat_id}')
 
             self._set_premium(call.message, chat_id)
             return True
 
         elif json.loads(call.data)['type'] == 'del':
             chat_id = json.loads(call.data)['chat_id']
-            print(f'DEL PREMIUM handler for {chat_id}')
+            print(f'{datetime.now()} --- DEL PREMIUM handler for {chat_id}')
 
             self._del_premium(call.message, chat_id)
             return True
