@@ -1,4 +1,5 @@
 from telebot import TeleBot
+from datetime import datetime
 
 from objects.user import User
 from objects.additive import Additive
@@ -14,17 +15,17 @@ class AdditivesResponder(InlineResponder):
 
     def handle(self, call) -> bool:
         if call.data == 'get':
-            print(f'GET handler for {call.message.chat.id}')
+            print(f'{datetime.now()} --- GET handler for {call.message.chat.id}')
             self._get_call(call.message)
             return True
 
         elif call.data == 'add':
-            print(f'ADD handler for {call.message.chat.id}')
+            print(f'{datetime.now()} --- ADD handler for {call.message.chat.id}')
             self._add_call(call.message)
             return True
         
         elif call.data == 'del':
-            print(f'DEL handler for {call.message.chat.id}')
+            print(f'{datetime.now()} --- DEL handler for {call.message.chat.id}')
             self._del_call(call.message)
             return True
         return False

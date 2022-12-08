@@ -3,6 +3,7 @@ from data.config import DBPATH, ECODEDESCRIPTION
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 
 class ECode:
@@ -29,7 +30,7 @@ class ECode:
         return f'ECode(e_id="{self.e_id}", e_number="{self.e_number}", e_name="{self.e_name}")'
 
     def get_description(self):
-        print(f'Making description for {self.e_number}')
+        print(f'{datetime.now()} --- Making description for {self.e_number}')
         return ECODEDESCRIPTION.format(
             e_name=self.e_name, e_number=self.e_number, harm=self.harm, 
             feature=self.feature, usage=self.usage, influence=self.influence

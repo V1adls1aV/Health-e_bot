@@ -1,6 +1,7 @@
 from objects.user import User
 from objects.ecode import ECode
 from data.config import TESS_CONFIG
+from datetime import datetime
 
 from matplotlib import pyplot as plt
 from pytesseract import image_to_string
@@ -15,7 +16,7 @@ class Photo:
         self.image = self._get_image()
 
     def _get_image(self):  # Get image from server
-        print("Getting image from server")
+        print(f'{datetime.now} --- Getting image from server')
         image_id = self.message.photo[-1].file_id
         image_bytes = self.bot.download_file(
             self.bot.get_file(image_id).file_path
@@ -24,7 +25,7 @@ class Photo:
             return open_image(stream).convert('RGBA')
 
     def get_text(self):
-        print('Getting text from image')
+        print(f'{datetime.now()} --- Getting text from image')
         text = image_to_string(self.image, lang='rus', config=TESS_CONFIG)
         print('__________________________________')
         print('Recognized text:')
@@ -40,7 +41,7 @@ class Graph:
         self.y = list(range(1, self.res + 1))
     
     def get_image(self) -> None:
-        print('Getting image from graph')
+        print(f'{datetime.now()} --- Getting image from graph')
         stream = BytesIO()
         plt.plot_date(self.x, self.y, ls='-', fmt='.', color='green')
         plt.title('Количество пользователей')
@@ -56,7 +57,7 @@ class AdditiveList(list):
         super().__init__(self.text)
 
     def _filter_text(self) -> list[str]:  # Filter the text
-        print('Filtering the text')
+        print(f'{datetime.now()} --- Filtering the text')
         res = []
         for word in self.raw_text.split(','):
             if word:
@@ -66,7 +67,7 @@ class AdditiveList(list):
                         name += letter
                 if name:
                     res.append(name.strip())
-        print(f'Filtered text: {res}')
+        print(f'{datetime.now()} --- Filtered text: {res}')
         return res
 
 
@@ -102,7 +103,7 @@ class Composition(AdditiveList):
         self.additives, self.ecodes = self._find_additives()
 
     def get_evaluation(self) -> str:
-        print(f'Getting evalution for {self.chat_id}')
+        print(f'{datetime.now()} --- Getting evalution for {self.chat_id}')
         text = ''
         if self.additives:
             text += 'Из вашего чёрного списка:\n' + ', '.join(self.additives)
