@@ -5,7 +5,7 @@ import json
 
 from objects.user import User
 from responders.inline_resp import InlineResponder
-from data.config import ADMINS
+from data.config import ADMINS, QUEST1, QUEST2, QUEST3
 
 
 class PremiumResponder(InlineResponder):
@@ -53,8 +53,10 @@ class PremiumResponder(InlineResponder):
                 Пользователь @{message.chat.username} запрашивает premuim.\nPremium status: {user.premium}''',
                 reply_markup=markup)  # Sending message to admin
 
-            self.bot.send_message(message.chat.id, 
-                'Заявка отправлена, спасибо!')  # Message to user
+            # Message to user
+            self.bot.send_message(message.chat.id, QUEST1)
+            self.bot.send_message(message.chat.id, QUEST2)
+            self.bot.send_message(message.chat.id, QUEST3)
 
 
     def _set_premium(self, message, chat_id):

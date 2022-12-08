@@ -4,7 +4,8 @@ from objects.user import User
 from objects.additive import Additive
 from data_structures import AdditiveList
 from responders.inline_resp import InlineResponder
-from data.config import BLACKLISTOVERFLOW, FEEDBACK, BLACKLIST, PREMIUM
+from data.config import BLACKLISTOVERFLOW1, BLACKLISTOVERFLOW2, FEEDBACK, \
+     BLACKLIST, PREMIUM
 
 
 class AdditivesResponder(InlineResponder):
@@ -64,9 +65,11 @@ class AdditivesResponder(InlineResponder):
             self.bot.register_next_step_handler(mes, self._add_item)
         else:
             self.bot.edit_message_text(
-                BLACKLISTOVERFLOW, 
+                BLACKLISTOVERFLOW1, 
                 message.chat.id, message.id
                 )
+            self.bot.send_message(message.chat.id, 
+            BLACKLISTOVERFLOW2)
 
     def _add_item(self, message):
         if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
@@ -85,7 +88,10 @@ class AdditivesResponder(InlineResponder):
                     self.bot.send_message(message.chat.id, 
                     f'Элемент "{additive_name}" успешно добавлен')
                 else:
-                    self.bot.send_message(message.chat.id, BLACKLISTOVERFLOW)
+                    self.bot.send_message(message.chat.id, 
+                    BLACKLISTOVERFLOW1)
+                    self.bot.send_message(message.chat.id, 
+                    BLACKLISTOVERFLOW2)
                     break
 
         self._current_additive_list(message.chat.id)

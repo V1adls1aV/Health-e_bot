@@ -8,8 +8,8 @@ from data_structures import Composition, Photo, Graph
 from responders.ecode_resp import ECodeResponder
 from responders.premium_resp import PremiumResponder
 from responders.additive_resp import AdditivesResponder
-from data.config import TOKEN, DESCRIPTION, ADMINS, \
-    PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, FEEDBACKTEXT
+from data.config import TOKEN, DESCRIPTION1, DESCRIPTION2, ADMINS, \
+    PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, FEEDBACKTEXT, QUEST1, QUEST2, QUEST3
 
 
 class Admin(tb.SimpleCustomFilter):
@@ -39,8 +39,8 @@ def send_welcome(message):
     User.get_current_user(message.chat.id)
     
     bot.send_message(message.chat.id, 
-    DESCRIPTION.format(user_name=message.from_user.first_name), reply_markup=markup)
-
+    DESCRIPTION1.format(user_name=message.from_user.first_name), reply_markup=markup)
+    bot.send_message(message.chat.id, DESCRIPTION2)
 
 @bot.message_handler(commands=['distribute'], is_admin=True)
 def distribute_news(message):
