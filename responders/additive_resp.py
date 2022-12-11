@@ -9,7 +9,7 @@ from data.config import BLACKLISTOVERFLOW1, BLACKLISTOVERFLOW2, FEEDBACK, \
      BLACKLIST, PREMIUM
 
 
-class AdditivesResponder(InlineResponder):
+class AdditiveResponder(InlineResponder):
     def __init__(self, bot: TeleBot) -> None:
         super().__init__(bot)
 

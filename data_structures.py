@@ -43,8 +43,11 @@ class Graph:
     def get_image(self) -> None:
         print(f'{datetime.now()} --- Getting image from graph')
         stream = BytesIO()
-        plt.plot_date(self.x, self.y, ls='-', fmt='.', color='green')
+        
         plt.title('Количество пользователей')
+        plt.xticks(rotation=20)
+        plt.plot_date(self.x, self.y, ls='-', fmt='.', color='green')
+        
         plt.savefig(stream, format='png')
         plt.clf()
         return open_image(stream)
