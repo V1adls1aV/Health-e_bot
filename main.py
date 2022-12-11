@@ -7,9 +7,9 @@ from objects.user import User
 from data_structures import Composition, Photo, Graph
 from responders.ecode_resp import ECodeResponder
 from responders.premium_resp import PremiumResponder
-from responders.additive_resp import AdditivesResponder
+from responders.additive_resp import AdditiveResponder
 from data.config import TOKEN, DESCRIPTION1, DESCRIPTION2, ADMINS, \
-    PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, FEEDBACKTEXT, QUEST1, QUEST2, QUEST3
+    PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, FEEDBACKTEXT
 
 
 class Admin(tb.SimpleCustomFilter):
@@ -151,7 +151,7 @@ def composition_analyzer(message, text, user):  # Composition analyzing
 def inline_buttons_handler(call):  # Inline buttons handling
     if call.message:
         responders = [
-            AdditivesResponder(bot),
+            AdditiveResponder(bot),
             ECodeResponder(bot),
             PremiumResponder(bot)
         ]
