@@ -44,15 +44,15 @@ class AdditiveResponder(InlineResponder):
                 'У тебя нет чёрного списка...', 
                 message.chat.id, message.id)
 
-    def _current_additive_list(self, id):
-        user = User.get_current_user(id)
+    def _current_additive_list(self, message):
+        user = User.get_current_user(message.chat.id)
         additives = user.get_additives_names()
 
         if additives:
-            self.bot.send_message(id, 'Твой чёрный список:\n' + \
-                ', '.join(additives) + '.')
+            self.bot.send_message(message.chat.id, 
+            'Твой чёрный список:\n' + ', '.join(additives) + '.')
         else:
-            self.bot.send_message(id, 
+            self.bot.send_message(message.chat.id, 
             'У тебя нет чёрного списка(')
     
 
@@ -95,7 +95,7 @@ class AdditiveResponder(InlineResponder):
                     BLACKLISTOVERFLOW2)
                     break
 
-        self._current_additive_list(message.chat.id)
+        self._current_additive_list(message)
         # Info about current black list
 
 
@@ -122,5 +122,5 @@ class AdditiveResponder(InlineResponder):
                 self.bot.send_message(message.chat.id, 
                 f'Элемент "{additive_name}" был удалён ранее')
 
-        self._current_additive_list(message.chat.id)
+        self._current_additive_list(message)
         # Info about current black list
