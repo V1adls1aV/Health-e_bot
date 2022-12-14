@@ -24,9 +24,6 @@ bot.add_custom_filter(Admin())
 matplotlib.use('agg')  # Setting not interactive backend
 
 
-####################### Message handlers ########################
-
-
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -42,17 +39,20 @@ def send_welcome(message):
     DESCRIPTION1.format(user_name=message.from_user.first_name), reply_markup=markup)
     bot.send_message(message.chat.id, DESCRIPTION2)
 
+
+######################## Admin handlers #########################
+
+
 @bot.message_handler(commands=['distribute'], is_admin=True)
 def distribute_news(message):
     mes = bot.send_message(message.chat.id, 'Пришлите текст рассылки.')
     bot.register_next_step_handler(mes, sending_news)
 
-
 def sending_news(message):
     amount = 0
     for chat_id in User.get_chats_ids():
         try:
-            bot.send_message(chat_id, message.text)
+            bot.forward_message(chat_id, message.chat.id, message.id)
             amount += 1
         except:  # User has banned the bot
             pass
@@ -61,13 +61,27 @@ def sending_news(message):
     f'Количество рассылок: {amount}')
 
 
-@bot.message_handler(commands=['statistics'], is_admin=True)
+@bot.message_handler(commands=['stats'], is_admin=True)
 def get_statistics(message):
     graph = Graph(
         User.get_creating_dates()
         )
     bot.send_photo(message.chat.id, graph.get_image(), 
         f'Всего пользователей: {graph.res}')
+
+
+@bot.message_handler(commands=['logs'], is_admin=True)
+def get_logs(message):
+    with open('hello.log', encoding='utf-8') as file:
+        if message.text[-1].isdigit():
+            lines = int(message.text[6:])
+            last_logs = file.readlines()[-lines:]
+            bot.send_message(message.chat.id, ''.join(last_logs))
+        else:
+            bot.send_document(message.chat.id, file)
+
+
+####################### Message handlers ########################
 
 
 @bot.message_handler(content_types=['text', 'photo'])
@@ -104,13 +118,16 @@ def buttons_handler(message):
         if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
             buttons_handler(message)
             return
-        user = User.get_current_user(message.chat.id)
+        user = User.get_current_user(message.chat.id, 
+        message.from_user.username)
+
         composition_analyzer(message, message.text, user)
 
     elif message.content_type == 'photo':  # AI
-        user = User.get_current_user(message.chat.id)
-        image = Photo(bot, message)
+        user = User.get_current_user(message.chat.id, 
+        message.from_user.username)
 
+        image = Photo(bot, message)
         text = image.get_text()
         composition_analyzer(message, text, user)
 
@@ -120,21 +137,13 @@ def send_feedback(message):
         buttons_handler(message)
         return
     chat_id = choice(ADMINS)  # Getting random admin
-    
-    if message.content_type == 'photo':
-        image = Photo(bot, message)
-        bot.send_photo(chat_id, image.image, 
-        f'Пользователь @{message.from_user.username} оставил отзыв:\n{message.caption}')
-        
-        bot.send_message(message.chat.id, 'Спасибо за отзыв❤️')
-        # To user
-    else:
-        bot.send_message(chat_id, f'''
-            Пользователь @{message.from_user.username} оставил отзыв:\n{message.text}'''
-            )  # Maybe add reply for admin in the future
 
-        bot.send_message(message.chat.id, 'Спасибо за отзыв❤️')
-        # To user
+    bot.send_message(chat_id, f'Пользователь @{message.from_user.username} оставил отзыв:')
+    bot.forward_message(chat_id, message.chat.id, message.id)
+    # Maybe add reply for admin in the future
+
+    bot.send_message(message.chat.id, 'Спасибо за отзыв❤️')
+    # To user
 
 
 def composition_analyzer(message, text, user):  # Composition analyzing
