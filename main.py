@@ -8,8 +8,9 @@ from data_structures import Composition, Photo, Graph
 from responders.ecode_resp import ECodeResponder
 from responders.premium_resp import PremiumResponder
 from responders.additive_resp import AdditiveResponder
-from data.config import TOKEN, DESCRIPTION1, DESCRIPTION2, ADMINS, \
-    PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, FEEDBACKTEXT
+from data.config import TOKEN, DESCRIPTION1, DESCRIPTION2, \
+    ADMINS, PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, \
+    FEEDBACKTEXT, QUEST1, QUEST2
 
 
 class Admin(tb.SimpleCustomFilter):
@@ -111,7 +112,9 @@ def buttons_handler(message):
         bot.send_message(message.chat.id, PREMIUMTERMS, reply_markup=markup)
 
     elif message.text == FEEDBACK:
-            mes = bot.send_message(message.chat.id, FEEDBACKTEXT)
+            bot.send_message(message.chat.id, FEEDBACKTEXT)
+            bot.send_message(message.chat.id, QUEST1)
+            mes = bot.send_message(message.chat.id, QUEST2)
             bot.register_next_step_handler(mes, send_feedback)
 
     elif message.content_type == 'text':  # Getting evalution of text
@@ -138,7 +141,7 @@ def send_feedback(message):
 
     bot.send_message(chat_id, f'Пользователь @{message.from_user.username} оставил отзыв:')
     bot.forward_message(chat_id, message.chat.id, message.id)
-    # Maybe add reply for admin in the future
+    # Maybe add reply from admin in the future
 
     bot.send_message(message.chat.id, 'Спасибо за отзыв❤️')
     # To user
