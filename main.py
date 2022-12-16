@@ -118,14 +118,12 @@ def buttons_handler(message):
         if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
             buttons_handler(message)
             return
-        user = User.get_current_user(message.chat.id, 
-        message.from_user.username)
+        user = User.get_current_user(message.chat.id)
 
         composition_analyzer(message, message.text, user)
 
     elif message.content_type == 'photo':  # AI
-        user = User.get_current_user(message.chat.id, 
-        message.from_user.username)
+        user = User.get_current_user(message.chat.id)
 
         image = Photo(bot, message)
         text = image.get_text()
