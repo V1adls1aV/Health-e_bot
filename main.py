@@ -4,13 +4,14 @@ from random import choice
 import matplotlib
 
 from objects.user import User
+from objects.ecode import ECode
 from data_structures import Composition, Photo, Graph
 from responders.ecode_resp import ECodeResponder
 from responders.premium_resp import PremiumResponder
 from responders.additive_resp import AdditiveResponder
 from data.config import TOKEN, DESCRIPTION1, DESCRIPTION2, \
     ADMINS, PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, \
-    FEEDBACKTEXT, QUEST1, QUEST2
+    FEEDBACKTEXT, QUEST1, QUEST2, ECODEDEGREES
 
 
 class Admin(tb.SimpleCustomFilter):
@@ -151,8 +152,13 @@ def composition_analyzer(message, text, user):  # Composition analyzing
     comp = Composition(text)
     comp.set_user(user)
     markup = types.InlineKeyboardMarkup(row_width=1)
-    for el in comp.ecodes:
-        markup.add(types.InlineKeyboardButton(el, callback_data=el))
+
+    ecode_list = [(el, ECode.get_harm_degree(el)) for el in comp.ecodes]
+    ecode_list.sort(key=lambda x: x[1], reverse=True)
+    for el, _ in ecode_list:
+        markup.add(types.InlineKeyboardButton(
+            el + f' ({ECODEDEGREES[ECode.get_harm_degree(el)]})', 
+            callback_data=el))  # Creating buttons with short description of ecodes
     
     bot.send_message(message.chat.id, comp.get_evaluation(), reply_markup=markup)
 

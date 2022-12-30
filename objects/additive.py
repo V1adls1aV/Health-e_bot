@@ -46,5 +46,4 @@ class Additive:
                 raise DBConnectionsExistError()
 
             session.delete(additive)
-            session.commit()
-            
+            session.commit()            
