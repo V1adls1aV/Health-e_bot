@@ -46,6 +46,7 @@ class DBECode(Base):
     e_number = Column(String)
     e_name = Column(String)
     harm = Column(String)
+    harm_degree = Column(Integer)
     feature = Column(String)
     usage = Column(String)
     influence = Column(String)

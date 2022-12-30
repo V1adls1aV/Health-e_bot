@@ -109,9 +109,10 @@ class Composition(AdditiveList):
         print(f'{datetime.now()} --- Getting evalution for {self.chat_id}')
         text = ''
         if self.additives:
-            text += 'Из вашего чёрного списка:\n' + ', '.join(self.additives)
+            text += 'Из твоего чёрного списка:\n' + ', '.join(self.additives)
         if self.ecodes:
-            text += '\n\nЕ-добавки:\n' + ', '.join(self.ecodes)
+            text += '\n\nЕ-добавки:'
+
         if not text:
             text = 'All is good!'
         return text
