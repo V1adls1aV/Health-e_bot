@@ -1,6 +1,8 @@
-config.py
-_.py
 **__pycache__**
 **.pytest_cache**
+
 .coverage
+testing.session
 pytest.ini
+config.py
+_.py
