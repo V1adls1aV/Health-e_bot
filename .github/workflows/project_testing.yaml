@@ -1,8 +1,22 @@
 name: Testing
 on: push
 jobs:
+  setup_env:
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Installing requirements
+        run: pip install -r requirements.txt
+
+
   unit_testing:
     runs-on: ubuntu-latest
+    needs: setup_env
+
     steps:
-      - name: 
+      - name: Running Unit tests
         run: pytest tests/unit_tests
