@@ -1,7 +1,7 @@
 name: Testing
 on: push
 jobs:
-  setup_env:
+  unit_testing:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -13,11 +13,5 @@ jobs:
       - name: Installing requirements
         run: pip install -r requirements.txt
 
-
-  unit_testing:
-    runs-on: ubuntu-latest
-    needs: setup_env
-
-    steps:
       - name: Running Unit tests
         run: pytest tests/unit_tests
