@@ -1,7 +1,6 @@
 import telebot as tb
 from telebot import types
 from random import choice
-from os import environ
 import matplotlib
 
 from objects.user import User
@@ -10,7 +9,7 @@ from data_structures import Composition, Photo, Graph
 from responders.ecode_resp import ECodeResponder
 from responders.premium_resp import PremiumResponder
 from responders.additive_resp import AdditiveResponder
-from data.config import DESCRIPTION1, DESCRIPTION2, \
+from data.config import TOKEN, DESCRIPTION1, DESCRIPTION2, \
     ADMINS, PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, \
     FEEDBACKTEXT, QUEST1, QUEST2, ECODEDEGREES
 
@@ -22,7 +21,7 @@ class Admin(tb.SimpleCustomFilter):
         return message.chat.id in ADMINS
 
 
-bot = tb.TeleBot(environ.get('TG_TOKEN'), parse_mode='HTML')  # initializing bot
+bot = tb.TeleBot(TOKEN, parse_mode='HTML')  # initializing bot
 bot.add_custom_filter(Admin())
 matplotlib.use('agg')  # Setting not interactive backend
 

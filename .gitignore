@@ -5,4 +5,5 @@
 testing.session
 testing.session-journal
 pytest.ini
+config.py
 _.py

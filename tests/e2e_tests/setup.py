@@ -1,10 +1,8 @@
 import pytest_asyncio
 from telethon import TelegramClient
-from os import environ
+from tests.e2e_tests.data.config import API_ID, API_HASH
 
 
 @pytest_asyncio.fixture
 async def client() -> TelegramClient:
-    return TelegramClient('testing', 
-    environ.get('API_ID'), 
-    environ.get('API_HASH'))
+    return TelegramClient('testing', API_ID, API_HASH)

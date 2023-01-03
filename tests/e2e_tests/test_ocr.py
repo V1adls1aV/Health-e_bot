@@ -1,5 +1,4 @@
 import asyncio
-from os import environ
 from telethon import TelegramClient
 
 from tests.e2e_tests.setup import client  # importing fixture
@@ -24,10 +23,10 @@ async def test_ocr2(client: TelegramClient):
         await asyncio.sleep(OCRDELAY)
 
         message = (await client.get_messages(BOT_NAME))[0]
-        result = [
-            message.text,
-            *[el.buttons[0].text for el in message.reply_markup.rows],
-        ]
+        result = {
+            *message.text.split('\n')[1].split(', '),
+            *[el.buttons[0].text for el in message.reply_markup.rows]
+        }
         assert result == OCRRES2
 
 
@@ -38,19 +37,8 @@ async def test_ocr3(client: TelegramClient):
         await asyncio.sleep(OCRDELAY)
 
         message = (await client.get_messages(BOT_NAME))[0]
-        result = [
-            message.text,
-            *[el.buttons[0].text for el in message.reply_markup.rows],
-        ]
+        result = {
+            *message.text.split('\n')[1].split(', '),
+            *[el.buttons[0].text for el in message.reply_markup.rows]
+        }
         assert result == OCRRES3
-
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(
-        test_ocr1(
-            TelegramClient('testing', 
-                environ.get('API_ID'), 
-                environ.get('API_HASH')).start()
-            )
-        )
