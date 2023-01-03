@@ -19,6 +19,11 @@ jobs:
   e2e_testing:
     needs: unit_testing
     runs-on: ubuntu-latest
+    env:
+          API_HASH: ${{ secrets.API_HASH }}
+          API_ID: ${{ secrets.API_ID }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -28,10 +33,6 @@ jobs:
       
       - name: Setting environment
         run: pip install -r requirements.txt
-        env:
-          API_HASH: ${{ secrets.API_HASH }}
-          API_ID: ${{ secrets.API_ID }}
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
       
       - name: Running E2E tests
         run: pytest tests/e2e_tests
