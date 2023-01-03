@@ -1,5 +1,4 @@
 import asyncio
-from os import environ
 from telethon import TelegramClient
 
 from tests.e2e_tests.setup import client  # importing fixture
@@ -22,10 +21,9 @@ async def test_message2(client: TelegramClient):
         await asyncio.sleep(MESDELAY)
 
         message = (await client.get_messages(BOT_NAME))[0]
-        result = [
-            message.text,
-            *[el.buttons[0].text for el in message.reply_markup.rows]
-        ]
+        result = {
+            *[el.buttons[0].text for el in message.reply_markup.rows]  # ECodes
+        }
         assert result == TEXTRES2
 
 
@@ -35,19 +33,8 @@ async def test_message3(client: TelegramClient):
         await asyncio.sleep(MESDELAY)
         message = (await client.get_messages(BOT_NAME))[0]
 
-        result = [
-            message.text,
-            *[el.buttons[0].text for el in message.reply_markup.rows]
-        ]
+        result = {
+            *message.text.split('\n')[1].split(', '),  # BL elements
+            *[el.buttons[0].text for el in message.reply_markup.rows]  # ECodes
+        }
         assert result == TEXTRES3
-
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(
-        test_message3(
-            TelegramClient('testing', 
-                environ.get('API_ID'), 
-                environ.get('API_HASH')).start()
-            )
-        )

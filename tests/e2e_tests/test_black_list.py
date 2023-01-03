@@ -1,5 +1,4 @@
 import asyncio
-from os import environ
 from telethon import TelegramClient
 
 from tests.e2e_tests.setup import client  # importing fixture
@@ -59,14 +58,3 @@ async def test_deleting(client: TelegramClient):
 
         message = await client.get_messages(BOT_NAME, limit=3)
         assert [message[2 - i].text for i in range(3)] == BLRES3
-
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(
-        test_adding(
-            TelegramClient('testing', 
-                environ.get('API_ID'), 
-                environ.get('API_HASH')).start()
-            )
-        )
