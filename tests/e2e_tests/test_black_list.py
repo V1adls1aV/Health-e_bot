@@ -1,8 +1,9 @@
 import asyncio
+from os import environ
 from telethon import TelegramClient
 
 from tests.e2e_tests.setup import client  # importing fixture
-from tests.e2e_tests.data.config import API_ID, API_HASH, BOT_NAME, \
+from tests.e2e_tests.data.config import BOT_NAME, \
     BLRES1, BL2, BLRES2, BL3, BLRES3, BLDELAY
 
 
@@ -64,6 +65,8 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(
         test_adding(
-            TelegramClient('testing', API_ID, API_HASH).start()
+            TelegramClient('testing', 
+                environ.get('API_ID'), 
+                environ.get('API_HASH')).start()
             )
         )

@@ -1,8 +1,9 @@
 import asyncio
+from os import environ
 from telethon import TelegramClient
 
 from tests.e2e_tests.setup import client  # importing fixture
-from tests.e2e_tests.data.config import API_ID, API_HASH, BOT_NAME, MESDELAY, \
+from tests.e2e_tests.data.config import BOT_NAME, MESDELAY, \
     TEXT1, TEXTRES1, TEXT2, TEXTRES2, TEXT3, TEXTRES3
 
 
@@ -45,6 +46,8 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(
         test_message3(
-            TelegramClient('testing', API_ID, API_HASH).start()
+            TelegramClient('testing', 
+                environ.get('API_ID'), 
+                environ.get('API_HASH')).start()
             )
         )
