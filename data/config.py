@@ -1,4 +1,4 @@
-DBPATH = "sqlite:///data/users_data.db"
+DBPATH = "sqlite:///data/Users_data.db"
 
 ADMINS = [754826030]
 
