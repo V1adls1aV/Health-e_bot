@@ -1,4 +1,3 @@
-from tests.unit_tests.setup import UserMock
 from objects.user import User
 from objects.ecode import ECode
 from data.config import TESS_CONFIG
@@ -101,7 +100,7 @@ class Composition(AdditiveList):
                     eco.add(self.user_ecodes[n])
         return list(ad), list(eco)
 
-    def set_user(self, user: UserMock):
+    def set_user(self, user: User):
         self.chat_id = user.chat_id
         self.user_additives = user.get_additives_names()
         self.additives, self.ecodes = self._find_additives()
