@@ -1,8 +1,8 @@
 import asyncio
 from telethon import TelegramClient
 
-from tests.e2e_tests.setup import client  # importing fixture
-from tests.e2e_tests.data.config import BOT_NAME, \
+from tests.e2e.setup import client  # importing fixture
+from tests.e2e.data.config import BOT_NAME, \
     BLRES1, BL2, BLRES2, BL3, BLRES3, BLDELAY
 
 

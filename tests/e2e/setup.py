@@ -1,6 +1,6 @@
 import pytest_asyncio
 from telethon import TelegramClient
-from tests.e2e_tests.data.config import API_ID, API_HASH
+from tests.e2e.data.config import API_ID, API_HASH
 
 
 @pytest_asyncio.fixture
