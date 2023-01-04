@@ -5,7 +5,9 @@ import matplotlib
 
 from objects.user import User
 from objects.ecode import ECode
-from data_structures import Composition, Photo, Graph
+from data_structures.photo import Photo
+from data_structures.graph import Graph
+from data_structures.composition import Composition
 from responders.ecode_resp import ECodeResponder
 from responders.premium_resp import PremiumResponder
 from responders.additive_resp import AdditiveResponder

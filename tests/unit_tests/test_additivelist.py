@@ -1,4 +1,4 @@
-from data_structures import AdditiveList
+from data_structures.additive_list import AdditiveList
 
 
 def test_1():
