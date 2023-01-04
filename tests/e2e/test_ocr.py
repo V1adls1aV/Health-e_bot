@@ -1,8 +1,8 @@
 import asyncio
 from telethon import TelegramClient
 
-from tests.e2e_tests.setup import client  # importing fixture
-from tests.e2e_tests.data.config import BOT_NAME, IMAGES_PATH, \
+from tests.e2e.setup import client  # importing fixture
+from tests.e2e.data.config import BOT_NAME, IMAGES_PATH, \
     OCRRES1, OCRRES2, OCRRES3, OCRDELAY
 
 

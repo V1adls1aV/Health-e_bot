@@ -1,19 +1,11 @@
 import telebot as tb
 from telebot import types
-from random import choice
 import matplotlib
 
 from objects.user import User
-from objects.ecode import ECode
-from data_structures.photo import Photo
-from data_structures.graph import Graph
-from data_structures.composition import Composition
-from responders.ecode_resp import ECodeResponder
-from responders.premium_resp import PremiumResponder
-from responders.additive_resp import AdditiveResponder
+from responders.responders_importing import *  # Importing responders
 from data.config import TOKEN, DESCRIPTION1, DESCRIPTION2, \
-    ADMINS, PREMIUMTERMS, PREMIUM, BLACKLIST, FEEDBACK, \
-    FEEDBACKTEXT, QUEST1, QUEST2, ECODEDEGREES
+    ADMINS, PREMIUM, BLACKLIST, FEEDBACK
 
 
 class Admin(tb.SimpleCustomFilter):
@@ -23,160 +15,78 @@ class Admin(tb.SimpleCustomFilter):
         return message.chat.id in ADMINS
 
 
-bot = tb.TeleBot(TOKEN, parse_mode='HTML')  # initializing bot
+# Initializing bot
+bot = tb.TeleBot(TOKEN, parse_mode='HTML')
 bot.add_custom_filter(Admin())
 matplotlib.use('agg')  # Setting not interactive backend
 
 
+
+# Saying hello
 @bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
+def send_welcome(message: types.Message):
+    # Adding user to DB if it is necessary
+    User.get_current_user(message.chat.id)
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(
         types.KeyboardButton(FEEDBACK),
         types.KeyboardButton(BLACKLIST),
         types.KeyboardButton(PREMIUM)
-        )
+    )
 
-    User.get_current_user(message.chat.id)
-    
     bot.send_message(message.chat.id, 
-    DESCRIPTION1.format(user_name=message.from_user.first_name), reply_markup=markup)
+        DESCRIPTION1.format(
+            user_name=message.from_user.first_name),
+        reply_markup=markup)
     bot.send_message(message.chat.id, DESCRIPTION2)
 
 
-######################## Admin handlers #########################
+
+# Admin commands handling
+@bot.message_handler(commands=['distribute', 'logs', 'stats'], is_admin=True)
+def admin_commands_handling(message: types.Message):
+    responders = [
+        LogsCommand(bot),
+        StatsCommand(bot),
+        DistributeCommand(bot)
+    ]
+
+    for responder in responders:
+        if responder.handle(message):
+            break
 
 
-@bot.message_handler(commands=['distribute'], is_admin=True)
-def distribute_news(message):
-    mes = bot.send_message(message.chat.id, 'Пришлите текст рассылки.')
-    bot.register_next_step_handler(mes, sending_news)
 
-def sending_news(message):
-    amount = 0
-    for chat_id in User.get_chats_ids():
-        try:
-            bot.forward_message(chat_id, message.chat.id, message.id)
-            amount += 1
-        except:  # User has banned the bot
-            pass
-
-    bot.send_message(message.chat.id, 
-    f'Количество рассылок: {amount}')
-
-
-@bot.message_handler(commands=['stats'], is_admin=True)
-def get_statistics(message):
-    graph = Graph(
-        User.get_creating_dates()
-        )
-    bot.send_photo(message.chat.id, graph.get_image(), 
-        f'Всего пользователей: {graph.res}')
-
-
-@bot.message_handler(commands=['logs'], is_admin=True)
-def get_logs(message):
-    with open('hello.log', encoding='utf-8') as file:
-        if message.text[-1].isdigit():
-            lines = int(message.text[6:])
-            last_logs = file.readlines()[-lines:]
-            bot.send_message(message.chat.id, ''.join(last_logs))
-        else:
-            bot.send_document(message.chat.id, file)
-
-
-####################### Message handlers ########################
-
-
+# Chat messages handling
 @bot.message_handler(content_types=['text', 'photo'])
-def buttons_handler(message):
-    if message.text == BLACKLIST:
-        markup = types.InlineKeyboardMarkup(row_width=1)
+def messages_handling(message: types.Message):
+    responders = [
+        BlackListMessage(bot),
+        FeedbackMessage(bot),
+        PremiumMessage(bot),
+        AnalyzingMessage(bot)
+    ]
 
-        markup.add(
-            types.InlineKeyboardButton('Получить список', 
-            callback_data='get'),
-            types.InlineKeyboardButton('Добавить элементы', 
-            callback_data='add'),
-            types.InlineKeyboardButton('Удалить элементы', 
-            callback_data='del')
-            )
-
-        bot.send_message(message.chat.id, 'Выбери действие:', reply_markup=markup)
-
-    elif message.text == PREMIUM:
-        markup = types.InlineKeyboardMarkup()
-
-        markup.add(
-            types.InlineKeyboardButton('Отправить заявку', 
-            callback_data='premium')
-            )
-
-        bot.send_message(message.chat.id, PREMIUMTERMS, reply_markup=markup)
-
-    elif message.text == FEEDBACK:
-            bot.send_message(message.chat.id, FEEDBACKTEXT)
-            bot.send_message(message.chat.id, QUEST1)
-            mes = bot.send_message(message.chat.id, QUEST2)
-            bot.register_next_step_handler(mes, send_feedback)
-
-    elif message.content_type == 'text':  # Getting evalution of text
-        if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
-            buttons_handler(message)
-            return
-        user = User.get_current_user(message.chat.id)
-
-        composition_analyzer(message, message.text, user)
-
-    elif message.content_type == 'photo':  # AI
-        user = User.get_current_user(message.chat.id)
-
-        image = Photo(bot, message)
-        text = image.get_text()
-        composition_analyzer(message, text, user)
+    for responder in responders:
+        if responder.handle(message):
+            break
 
 
-def send_feedback(message):
-    if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
-        buttons_handler(message)
-        return
-    chat_id = choice(ADMINS)  # Getting random admin
 
-    bot.send_message(chat_id, f'Пользователь @{message.from_user.username} оставил отзыв:')
-    bot.forward_message(chat_id, message.chat.id, message.id)
-    # Maybe add reply from admin in the future
+# Inline buttons handling
+@bot.callback_query_handler(func=lambda call: True)
+def inline_buttons_handling(call: types.CallbackQuery):
+    responders = [
+        BlackListButton(bot),
+        ECodeButton(bot),
+        PremiumButton(bot)
+    ]
 
-    bot.send_message(message.chat.id, 'Спасибо за отзыв❤️')
-    # To user
-
-
-def composition_analyzer(message, text, user):  # Composition analyzing
-    comp = Composition(text)
-    comp.set_user(user)
-    markup = types.InlineKeyboardMarkup(row_width=1)
-
-    ecode_list = [(el, ECode.get_harm_degree(el)) for el in comp.ecodes]
-    ecode_list.sort(key=lambda x: x[1], reverse=True)
-    for el, _ in ecode_list:
-        markup.add(types.InlineKeyboardButton(
-            el + f' ({ECODEDEGREES[ECode.get_harm_degree(el)]})', 
-            callback_data=el))  # Creating buttons with short description of ecodes
-    
-    bot.send_message(message.chat.id, comp.get_evaluation(), reply_markup=markup)
+    for responder in responders:
+        if responder.handle(call):
+            break
 
 
-@bot.callback_query_handler(func=lambda c: True)
-def inline_buttons_handler(call):  # Inline buttons handling
-    if call.message:
-        responders = [
-            AdditiveResponder(bot),
-            ECodeResponder(bot),
-            PremiumResponder(bot)
-        ]
 
-        for responder in responders:
-            if responder.handle(call):
-                break
-
-
-bot.infinity_polling()  # Running
+bot.infinity_polling()  # Running bot

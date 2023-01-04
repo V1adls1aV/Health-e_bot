@@ -1,4 +1,4 @@
-from tests.unit_tests.setup import UserMock, user
+from tests.unit.setup import UserMock, user
 from data_structures.composition import Composition
 
 
