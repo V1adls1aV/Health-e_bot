@@ -3,7 +3,7 @@ from datetime import datetime
 
 from objects.user import User
 from objects.additive import Additive
-from data_structures import AdditiveList
+from data_structures.additive_list import AdditiveList
 from responders.inline_resp import InlineResponder
 from data.config import BLACKLISTOVERFLOW1, BLACKLISTOVERFLOW2, FEEDBACK, \
      BLACKLIST, PREMIUM
