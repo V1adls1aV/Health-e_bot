@@ -41,8 +41,8 @@ class Composition(AdditiveList):
         if self.additives:
             text += 'Из твоего чёрного списка:\n' + ', '.join(self.additives)
         if self.ecodes:
-            text += '\n\nЕ-добавки:'
+            text += '\n\nЕ-добавки: (Вредность)'
 
         if not text:
-            text = 'All is good!'
+            text = 'Возможно, это тебе подходит!'
         return text

@@ -37,24 +37,24 @@ class BlackListButton(Responder):
         additives = user.get_additives_names()
 
         if additives:
-            self.bot.edit_message_text(
-                'Твой чёрный список:\n' + ', '.join(additives) + '.',
-                message.chat.id, message.id)
+            response = 'Твой чёрный список:\n' + ', '.join(additives) + '.'
         else:
-            self.bot.edit_message_text(
-                'У тебя нет чёрного списка...', 
-                message.chat.id, message.id)
+            response = 'У тебя нет чёрного списка...'
+
+        self.bot.edit_message_text(
+            response, 
+            message.chat.id, message.id)
 
     def _current_additive_list(self, message: Message):
         user = User.get_current_user(message.chat.id)
         additives = user.get_additives_names()
 
         if additives:
-            self.bot.send_message(message.chat.id, 
-            'Твой чёрный список:\n' + ', '.join(additives) + '.')
+            response = 'Твой чёрный список:\n' + ', '.join(additives) + '.'
         else:
-            self.bot.send_message(message.chat.id, 
-            'У тебя нет чёрного списка(')
+            response = 'У тебя нет чёрного списка('
+        
+        self.bot.send_message(message.chat.id, response)
     
 
     def _add_call(self, message: Message):  # Adding a connection/additive
@@ -65,6 +65,7 @@ class BlackListButton(Responder):
                 message.chat.id, message.id
                 )
             self.bot.register_next_step_handler(mes, self._add_item)
+
         else:
             self.bot.edit_message_text(
                 BLACKLISTOVERFLOW1, 
@@ -78,10 +79,12 @@ class BlackListButton(Responder):
             return
         user = User.get_current_user(message.chat.id)
         names = user.get_additives_names()
+
         for additive_name in AdditiveList(message.text):
             if additive_name in names:
                 self.bot.send_message(message.chat.id, 
                 f'Элемент "{additive_name}" уже есть в списке')
+            
             else:
                 if user.is_adding_avaliable():
                     additive = Additive(additive_name)
@@ -89,6 +92,7 @@ class BlackListButton(Responder):
 
                     self.bot.send_message(message.chat.id, 
                     f'Элемент "{additive_name}" успешно добавлен')
+                
                 else:
                     self.bot.send_message(message.chat.id, 
                     BLACKLISTOVERFLOW1)
@@ -112,16 +116,17 @@ class BlackListButton(Responder):
             return
         user = User.get_current_user(message.chat.id)
         names = user.get_additives_names()
+
         for additive_name in AdditiveList(message.text):
             if additive_name in names:
                 additive = Additive(additive_name)
                 user.del_additive(additive)
                 
-                self.bot.send_message(message.chat.id,
-                f'Элемент "{additive_name}" успешно удалён')
+                response = f'Элемент "{additive_name}" успешно удалён'
             else:
-                self.bot.send_message(message.chat.id, 
-                f'Элемент "{additive_name}" был удалён ранее')
+                response = f'Элемент "{additive_name}" был удалён ранее'
+
+            self.bot.send_message(message.chat.id, response)
 
         self._current_additive_list(message)
         # Info about current black list
