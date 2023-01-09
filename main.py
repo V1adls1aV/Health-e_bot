@@ -3,6 +3,7 @@ from telebot import types
 import matplotlib
 
 from objects.user import User
+from responders.responders_executor import RespondersExecutor
 from responders.responders_importing import *  # Importing responders
 from data.config import TOKEN, DESCRIPTION1, DESCRIPTION2, \
     ADMINS, PREMIUM, BLACKLIST, FEEDBACK
@@ -46,46 +47,37 @@ def send_welcome(message: types.Message):
 # Admin commands handling
 @bot.message_handler(commands=['distribute', 'logs', 'stats'], is_admin=True)
 def admin_commands_handling(message: types.Message):
-    responders = [
+    executor = RespondersExecutor([
         LogsCommand(bot),
         StatsCommand(bot),
         DistributeCommand(bot)
-    ]
-
-    for responder in responders:
-        if responder.handle(message):
-            break
+    ])
+    executor.execute(message)
 
 
 
 # Chat messages handling
 @bot.message_handler(content_types=['text', 'photo'])
 def messages_handling(message: types.Message):
-    responders = [
+    executor = RespondersExecutor([
         BlackListMessage(bot),
         FeedbackMessage(bot),
         PremiumMessage(bot),
         AnalyzingMessage(bot)
-    ]
-
-    for responder in responders:
-        if responder.handle(message):
-            break
+    ])
+    executor.execute(message)
 
 
 
 # Inline buttons handling
 @bot.callback_query_handler(func=lambda call: True)
 def inline_buttons_handling(call: types.CallbackQuery):
-    responders = [
+    executor = RespondersExecutor([
         BlackListButton(bot),
         ECodeButton(bot),
         PremiumButton(bot)
-    ]
-
-    for responder in responders:
-        if responder.handle(call):
-            break
+    ])
+    executor.execute(call)
 
 
 

@@ -31,4 +31,4 @@ class DistributeCommand(Responder):
             except:  # User has banned the bot
                 pass
         
-        self.bot.send_message(f'Всего рассылок: {amount}')
+        self.bot.send_message(message.chat.id, f'Всего рассылок: {amount}')
