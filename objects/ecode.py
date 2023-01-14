@@ -36,8 +36,8 @@ class ECode:
     def get_description(self):
         print(f'{datetime.now()} --- Making description for {self.e_number}')
         return ECODEDESCRIPTION.format(
-            e_name=self.e_name, e_number=self.e_number, harm=self.harm, 
-            feature=self.feature, usage=self.usage, influence=self.influence
+            e_name=self.e_name.capitalize(), e_number=self.e_number, harm=self.harm, 
+            feature=self.feature, influence=self.influence
             )
 
     @classmethod
