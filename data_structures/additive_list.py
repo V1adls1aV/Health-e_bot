@@ -14,7 +14,7 @@ class AdditiveList(list):
             if word:
                 name = ''
                 for letter in word.strip().lower():
-                    if letter.isalpha() or letter.isalnum() or letter in ' -':
+                    if letter.isalpha() or letter.isalnum() or letter == ' ':
                         name += letter
                 if name:
                     res.append(name.strip())

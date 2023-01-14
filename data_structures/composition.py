@@ -2,6 +2,7 @@ from data_structures.additive_list import AdditiveList
 from objects.ecode import ECode
 from objects.user import User
 from datetime import datetime
+from fuzzysearch import find_near_matches
 
 
 class Composition(AdditiveList):
@@ -19,15 +20,15 @@ class Composition(AdditiveList):
             if el[0] == 'e' and len(el) > 1:
                 el = 'е' + el[1:]  # Solving problem with russian and english E letter
 
-            for a in self.user_additives:  # Black list
-                if a in el:
-                    ad.add(a)
-            for e in self.user_ecodes.values():  # E-codes
-                if e in el:
-                    eco.add(e)
-            for n in self.user_ecodes.keys():  # E-names
-                if n in el:
-                    eco.add(self.user_ecodes[n])
+            for item in self.user_additives:  # Black list
+                if find_near_matches(item, el, max_l_dist=2):
+                    ad.add(item)
+            for item in self.user_ecodes.values():  # E-codes
+                if item in el:
+                    eco.add(item)
+            for item in self.user_ecodes.keys():  # E-names
+                if item in el:
+                    eco.add(self.user_ecodes[item])
         return list(ad), list(eco)
 
     def set_user(self, user: User):

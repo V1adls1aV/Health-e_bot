@@ -26,7 +26,37 @@ def test_4(user: UserMock):
     assert set(comp.ecodes) == {'е132', 'е123'}
 
 def test_5(user: UserMock):
-    comp = Composition('МолОко, сахАр, =!,+,,  e132, Е123,  ,. курица,молокосодержащий продукт')
+    comp = Composition('МолОко, сахАр, =!,+,,  e132    Е123,  ,. курица,молокосодержащий продукт')
     comp.set_user(user)
     assert set(comp.additives) == {'сахар', 'молоко'}
     assert set(comp.ecodes) == {'е132', 'е123'}
+
+def test_6(user: UserMock):
+    comp = Composition(', сахароза,  e-123')
+    comp.set_user(user)
+    assert set(comp.additives) == {'сахар'}
+    assert set(comp.ecodes) == {'е123'}
+
+def test_7(user: UserMock):
+    comp = Composition(' следы молочных продуктов,  сахар ,  e123')
+    comp.set_user(user)
+    assert set(comp.additives) == {'сахар', 'молоко'}
+    assert set(comp.ecodes) == {'е123'}
+
+def test_8(user: UserMock):
+    comp = Composition('яблочная кислота,  сахар,  e123')
+    comp.set_user(user)
+    assert set(comp.additives) == {'сахар'}
+    assert set(comp.ecodes) == {'е123', 'е296'}
+
+def test_9(user: UserMock):
+    comp = Composition('Молочная кислота, .,  сахар ,  e123')
+    comp.set_user(user)
+    assert set(comp.additives) == {'сахар', 'молоко'}
+    assert set(comp.ecodes) == {'е123', 'е270'}
+
+def test_10(user: UserMock):
+    comp = Composition('мука крупного помола')
+    comp.set_user(user)
+    assert set(comp.additives) == set()
+    assert set(comp.ecodes) == set()

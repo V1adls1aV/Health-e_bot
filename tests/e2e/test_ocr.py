@@ -13,7 +13,10 @@ async def test_ocr1(client: TelegramClient):
         await asyncio.sleep(OCRDELAY)
 
         message = (await client.get_messages(BOT_NAME))[0]
-        assert message.text == OCRRES1
+        result = {
+            *message.text.split('\n')[1].split(', ')
+        }
+        assert result == OCRRES1
 
 
 async def test_ocr2(client: TelegramClient):
