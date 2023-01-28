@@ -19,17 +19,21 @@ class AnalyzingMessage(Responder):
             print(f'{datetime.now()} --- TEXT analyzer from {message.chat.id}')
 
             user = User.get_current_user(message.chat.id)
-
             self._composition_analyzer(message, message.text, user)
             return True
 
         elif message.content_type == 'photo':  # AI
             print(f'{datetime.now()} --- PHOTO analyzer from {message.chat.id}')
             user = User.get_current_user(message.chat.id)
-
             image = Photo(self.bot, message)
-            text = image.get_text()
-            self._composition_analyzer(message, text, user)
+
+            if image.is_text():
+                text = image.get_text()
+                self._composition_analyzer(message, text, user)
+            else:
+                self.bot.send_message(message.chat.id,
+                    'Не могу разглядеть состав('
+                    )
             return True
         return False
 
