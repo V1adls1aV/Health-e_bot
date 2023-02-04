@@ -1,12 +1,14 @@
+import tensorflow as tf
 import numpy as np
 from PIL import Image
+from data.config import MODELPATH
 
-from tf_models.model import Model
 
-
-class TextModel(Model):
+class TextModel:
     def __init__(self, filename='text_model.h5'):
-        super().__init__(filename)
+        self.model: tf.keras.Model = tf.keras.models.load_model(
+            MODELPATH + filename
+        )
 
     def predict(self, image: Image) -> float:
         image = image.resize((256, 256))
