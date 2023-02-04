@@ -29,7 +29,7 @@ class Photo:
         prediction = model.predict(self.image)
         print(f'{datetime.now()} --- Is text checking {prediction}')
 
-        if prediction > 0.8:
+        if prediction > 0.5:
             return True
         return False
 
