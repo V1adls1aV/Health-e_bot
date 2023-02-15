@@ -1,12 +1,8 @@
 from telebot import TeleBot
 from telebot.types import Message
-from pytesseract import image_to_string
 from datetime import datetime
 from io import BytesIO
 from PIL import Image
-
-from tf_models.text_model import TextModel
-from data.config import TESS_CONFIG
 
 
 class Photo:
@@ -23,21 +19,3 @@ class Photo:
             )
         with BytesIO(image_bytes) as stream:
             return Image.open(stream).convert('RGB')
-
-    def is_text(self) -> bool:
-        model = TextModel()
-        prediction = model.predict(self.image)
-        print(f'{datetime.now()} --- Is text checking {prediction}')
-
-        if prediction > 0.5:
-            return True
-        return False
-
-    def get_text(self):
-        print(f'{datetime.now()} --- Getting text from image')
-        text = image_to_string(self.image, lang='rus', config=TESS_CONFIG)
-        print('__________________________________')
-        print('Recognized text:')
-        print(text)
-        print('__________________________________')
-        return text

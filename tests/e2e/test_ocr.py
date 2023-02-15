@@ -59,7 +59,7 @@ async def test_ocr3(client: TelegramClient):
         mes = (await client.get_messages(BOT_NAME))[0]
         assert mes.text == E211
 
-        await message.click(5)  # Clicking e306 button
+        await message.click(6)  # Clicking e306 button
         await asyncio.sleep(CLICKDELAY)        
         mes = (await client.get_messages(BOT_NAME))[0]
         assert mes.text == E306
