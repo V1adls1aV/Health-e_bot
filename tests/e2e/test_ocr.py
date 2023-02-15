@@ -4,7 +4,7 @@ from telethon import TelegramClient
 from tests.e2e.setup import client  # importing fixture
 from tests.e2e.data.config import BOT_NAME, IMAGES_PATH, \
     OCRRES1, OCRRES2, OCRRES3, OCRRES4, OCRRES5, \
-    OCRDELAY, CLICKDELAY, E410, E211, E306
+    OCRDELAY, CLICKDELAY, E450, E211, E306
 
 
 async def test_ocr1(client: TelegramClient):
@@ -34,10 +34,10 @@ async def test_ocr2(client: TelegramClient):
         }
         assert result == OCRRES2
 
-        await message.click(1)  # Clicking e410 button
+        await message.click(0)  # Clicking e450 button
         await asyncio.sleep(CLICKDELAY)
         message = (await client.get_messages(BOT_NAME))[0]
-        assert message.text == E410
+        assert message.text == E450
 
 
 
