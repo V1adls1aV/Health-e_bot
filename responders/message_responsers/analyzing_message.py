@@ -1,6 +1,6 @@
 from objects.user import User
 from objects.ecode import ECode
-from data_structures.photo import Photo
+from data_structures.product import Product
 from data_structures.composition import Composition
 from responders.responder import Responder
 from data.config import ECODEDEGREES
@@ -25,14 +25,20 @@ class AnalyzingMessage(Responder):
         elif message.content_type == 'photo':  # AI
             print(f'{datetime.now()} --- PHOTO analyzer from {message.chat.id}')
             user = User.get_current_user(message.chat.id)
-            image = Photo(self.bot, message)
+            product = Product(self.bot, message)
 
-            if image.is_text():
-                text = image.get_text()
+            if product.is_text and product.received_text:
+                text = product.extract_text() + ', ' + product.received_text
+                self._composition_analyzer(message, text, user)
+            elif product.is_text:
+                text = product.extract_text()
+                self._composition_analyzer(message, text, user)
+            elif product.received_text:
+                text = product.received_text
                 self._composition_analyzer(message, text, user)
             else:
                 self.bot.send_message(message.chat.id,
-                    'Не могу разглядеть состав('
+                    'Не могу разглядеть продукт('
                     )
             return True
         return False
