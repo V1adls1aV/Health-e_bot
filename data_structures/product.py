@@ -41,6 +41,7 @@ class Product(Photo):
 
 
     def _receive_text(self) -> str or None:
+        print(f'{datetime.now()} --- Receiving text from OFF')
         try:
             return off.products.get_product(
                 self.barcode)['product']['ingredients_text'] 
