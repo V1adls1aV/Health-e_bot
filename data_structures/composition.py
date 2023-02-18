@@ -17,9 +17,6 @@ class Composition(AdditiveList):
     def _find_additives(self) -> list[str] or None:
         ad, eco = set(), set()
         for el in self.text:
-            if el[0] == 'e' and len(el) > 1:
-                el = 'е' + el[1:]  # Solving problem with russian and english E letter
-
             for item in self.user_additives:  # Black list
                 if find_near_matches(item, el, max_l_dist=2):
                     ad.add(item)

@@ -18,5 +18,6 @@ class AdditiveList(list):
                         name += letter
                 if name:
                     res.append(name.strip())
+        res = list(map(lambda x: x.replace('e', 'е'), res))  # Solving problem with English 'e' letter
         print(f'{datetime.now()} --- Filtered text: {res}')
         return res
