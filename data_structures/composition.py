@@ -1,8 +1,11 @@
 from data_structures.additive_list import AdditiveList
 from objects.ecode import ECode
 from objects.user import User
+from data.config import OKMESSAGE
+
 from datetime import datetime
 from fuzzysearch import find_near_matches
+from random import choice
 
 
 class Composition(AdditiveList):
@@ -35,6 +38,10 @@ class Composition(AdditiveList):
 
     def get_evaluation(self) -> str:
         print(f'{datetime.now()} --- Getting evalution for {self.chat_id}')
+        
+        if not self.chat_id:
+            raise ValueError('You must determine user before getting product evaluation.')
+
         text = ''
         if self.additives:
             text += 'Из твоего чёрного списка:\n' + ', '.join(self.additives)
@@ -42,5 +49,5 @@ class Composition(AdditiveList):
             text += '\n\nЕ-добавки: (Вредность)'
 
         if not text:
-            text = 'Возможно, это тебе подходит!'
+            text = choice(OKMESSAGE)
         return text

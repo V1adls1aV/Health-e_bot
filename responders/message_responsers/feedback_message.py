@@ -2,7 +2,6 @@ from responders.responder import Responder
 from data.config import BLACKLIST, PREMIUM, FEEDBACK, \
     FEEDBACKTEXT, QUEST1, QUEST2, ADMINS
 
-from random import choice
 from datetime import datetime
 from telebot import TeleBot
 from telebot.types import Message
@@ -25,10 +24,9 @@ class FeedbackMessage(Responder):
     def _send_feedback(self, message: Message):
         if message.text in (FEEDBACK, BLACKLIST, PREMIUM):
             return
-        chat_id = choice(ADMINS)  # Getting random admin
 
-        self.bot.send_message(chat_id, f'Пользователь @{message.from_user.username} оставил отзыв:')
-        self.bot.forward_message(chat_id, message.chat.id, message.id)
+        self.bot.send_message(ADMINS, f'Пользователь @{message.from_user.username} оставил отзыв:')
+        self.bot.forward_message(ADMINS, message.chat.id, message.id)
         # Maybe add reply from admin in the future
 
         self.bot.send_message(message.chat.id, 'Спасибо за отзыв❤️')
