@@ -1,7 +1,7 @@
 from objects.sql_objects import DBUser, DBAdditive, DBConnection
 from objects.error_objects import DBConnectionsExistError
 from objects.additive import Additive
-from data.config import DBPATH, ADMINS, PREMIUMLIMIT, ADDITIVELIMIT
+from data.config import DBPATH, PREMIUMLIMIT, ADDITIVELIMIT
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -29,13 +29,9 @@ class User:
 
     def _create(self, session) -> DBUser:
         print(f'{datetime.now()} --- Creating user {self.chat_id}')
-        prem = False
-        if self.chat_id in ADMINS:
-            prem = True
-
         user = DBUser(
             chat_id=self.chat_id,
-            premium=prem,
+            premium=False,
             user_creating_date=datetime.now()
             )
         session.add(user)

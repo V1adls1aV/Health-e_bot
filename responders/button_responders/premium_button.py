@@ -1,6 +1,5 @@
 from telebot import TeleBot
 from telebot import types
-from random import choice
 from datetime import datetime
 import json
 
@@ -19,28 +18,31 @@ class PremiumButton(Responder):
             self._premium_call(call.message)
             return True
 
-        elif json.loads(call.data)['type'] == 'set':
-            chat_id = json.loads(call.data)['chat_id']
-            print(f'{datetime.now()} --- SET PREMIUM button from {chat_id}')
+        try:
+            req = json.loads(call.data)
+            if req['type'] == 'set':
+                chat_id = req['chat_id']
+                print(f'{datetime.now()} --- SET PREMIUM button from {chat_id}')
 
-            self._set_premium(call.message, chat_id)
-            return True
+                self._set_premium(call.message, chat_id)
+                return True
+            
+            elif req['type'] == 'del':
+                chat_id = req['chat_id']
+                print(f'{datetime.now()} --- DEL PREMIUM button from {chat_id}')
 
-        elif json.loads(call.data)['type'] == 'del':
-            chat_id = json.loads(call.data)['chat_id']
-            print(f'{datetime.now()} --- DEL PREMIUM button from {chat_id}')
-
-            self._del_premium(call.message, chat_id)
-            return True
-        return False
+                self._del_premium(call.message, chat_id)
+                return True
+            return False
+        except:
+            return False
 
 
     def _premium_call(self, message: types.Message):
-            admin_chat_id = choice(ADMINS)  # Getting random admin
             user = User.get_current_user(message.chat.id)
 
-            set_p = json.dumps({'type': 'set', 'chat_id': str(message.chat.id)})
-            del_p = json.dumps({'type': 'del', 'chat_id': str(message.chat.id)})
+            set_p = json.dumps({'type': 'set', 'chat_id': message.chat.id})
+            del_p = json.dumps({'type': 'del', 'chat_id': message.chat.id})
             
             markup = types.InlineKeyboardMarkup()
             markup.add(
@@ -50,9 +52,11 @@ class PremiumButton(Responder):
                 callback_data=del_p)
                 )
             
-            self.bot.send_message(admin_chat_id, f'''
-                Пользователь @{message.chat.username} запрашивает premuim.\nPremium status: {user.premium}''',
-                reply_markup=markup)  # Sending message to admin
+            self.bot.send_message(
+                ADMINS,
+                f'Пользователь @{message.chat.username} запрашивает premuim.\nPremium status: {user.premium}',
+                reply_markup=markup
+            )  # Sending message to admin
 
             # Message to user
             self.bot.send_message(message.chat.id, 'Заявка отправлена, скоро ответим!')

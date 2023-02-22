@@ -6,8 +6,8 @@ from objects.user import User
 from objects.additive import Additive
 from data_structures.additive_list import AdditiveList
 from responders.responder import Responder
-from data.config import BLACKLISTOVERFLOW1, BLACKLISTOVERFLOW2, FEEDBACK, \
-     BLACKLIST, PREMIUM
+from data.config import BLACKLISTOVERFLOW1, BLACKLISTOVERFLOW2, \
+    FEEDBACK, BLACKLIST, PREMIUM
 
 
 class BlackListButton(Responder):
