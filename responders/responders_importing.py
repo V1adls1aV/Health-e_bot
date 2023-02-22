@@ -1,5 +1,6 @@
 from responders.button_responders.ecode_button import ECodeButton
 from responders.button_responders.premium_button import PremiumButton
+from responders.button_responders.analyzing_button import AnalyzingButton
 from responders.button_responders.black_list_button import BlackListButton
 from responders.message_responsers.analyzing_message import AnalyzingMessage
 from responders.message_responsers.black_list_message import BlackListMessage
