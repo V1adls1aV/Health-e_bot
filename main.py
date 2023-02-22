@@ -13,7 +13,7 @@ class Admin(tb.SimpleCustomFilter):
     key = 'is_admin'
     @staticmethod
     def check(message: tb.types.Message):
-        return message.chat.id in ADMINS
+        return message.chat.id == ADMINS
 
 
 # Initializing bot
@@ -75,7 +75,8 @@ def inline_buttons_handling(call: types.CallbackQuery):
     executor = RespondersExecutor([
         BlackListButton(bot),
         ECodeButton(bot),
-        PremiumButton(bot)
+        PremiumButton(bot),
+        AnalyzingButton(bot)
     ])
     executor.execute(call)
 
