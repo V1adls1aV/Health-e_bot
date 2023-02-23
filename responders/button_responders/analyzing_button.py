@@ -1,6 +1,7 @@
 from telebot import TeleBot
 from telebot import types
 from datetime import datetime
+from random import choice
 import json
 
 from data_structures.composition import Composition
@@ -8,7 +9,7 @@ from data_structures.product import Product
 from responders.responder import Responder
 from objects.ecode import ECode
 from objects.user import User
-from data.config import ECODEDEGREES
+from data.config import ECODEDEGREES, THANKSMESSAGE
 
 
 class AnalyzingButton(Responder):
@@ -22,6 +23,10 @@ class AnalyzingButton(Responder):
                 call.message.chat.id,
                 'Эх...\nЯ в печали 😢'
             )
+            self.bot.edit_message_reply_markup(
+                call.message.chat.id,
+                call.message.id,
+                reply_markup=None)
             self.bot.clear_step_handler(call.message)
             return True
 
@@ -32,6 +37,11 @@ class AnalyzingButton(Responder):
                     call.message.chat.id,
                     'Жду фото состава продукта...'
                 )
+                self.bot.edit_message_reply_markup(
+                    call.message.chat.id,
+                    call.message.id,
+                    reply_markup=None)
+                
                 self.barcode = req['barcode']
                 self.bot.register_next_step_handler(
                     message, self._send_product
@@ -50,7 +60,7 @@ class AnalyzingButton(Responder):
                 product.barcode == self.barcode):
             self.bot.send_message(
                 message.chat.id,
-                'Спасибо за вклад в общее дело ❤️'
+                choice(THANKSMESSAGE)
             )
             product.barcode = self.barcode
             self._composition_analyzer(

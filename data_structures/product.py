@@ -24,7 +24,10 @@ class Product(Photo):
         print(f'{datetime.now()} --- Extracting barcode from image')
         res = pyzbar.decode(self.image)
         if res:
-            return res[0].data.decode()
+            for el in res:
+                if el.type != 'QRCODE':
+                    return el.data.decode()
+            return None
         return None
 
 
@@ -45,7 +48,7 @@ class Product(Photo):
         print(f'{datetime.now()} --- Receiving text from OFF')
         try:
             return off.products.get_product(
-                self.barcode)['product']['ingredients_text'] 
+                self.barcode)['product']['ingredients_text_ru'] 
         except:
             return None  # There is no product composition available
 
@@ -74,9 +77,9 @@ class Product(Photo):
         status = requests.post(
             url, data={
             'code': self.barcode,
-            'user_id'  : OFF_USERNAME,
-            'password'  : OFF_PASSWORD,
-            'lang': 'ru',
-            'ingredients_text' : self.recognized_text
+            'user_id': OFF_USERNAME,
+            'password': OFF_PASSWORD,
+            'lang': 'rus',
+            'ingredients_text_ru': self.recognized_text
         })
         print(f'{datetime.now()} --- Sending status: {status}')

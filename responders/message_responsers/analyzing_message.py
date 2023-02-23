@@ -44,7 +44,12 @@ class AnalyzingMessage(Responder):
             )
             self._composition_analyzer(
                 product.extract_text() + ', ' + product.received_text,
-                user
+                user)
+
+            product.send_to_OFF()
+            self.bot.send_message(
+                message.chat.id,
+                'Обновил запись в базе данных, спасибо!'
             )
 
         # Auto suggesting for OFF
@@ -66,11 +71,26 @@ class AnalyzingMessage(Responder):
         
         # Text from OFF
         elif product.received_text:
+            markup = types.InlineKeyboardMarkup()
+            markup.add(
+                types.InlineKeyboardButton(
+                    'Хочу сделать фото!',
+                    callback_data=json.dumps({
+                        'type': 'barcode',
+                        'barcode': product.barcode})
+            ))
+
             self.bot.send_message(
                 message.chat.id,
                 'Нашел продукт в Open Food Facts, проверяю!'
             )
             self._composition_analyzer(product.received_text, user)
+
+            self.bot.send_message(
+                message.chat.id,
+                'Хочешь обновить данные об этом продукте?',
+                reply_markup=markup
+            )
 
         # Proposal of OFF suggesting
         elif product.barcode:
