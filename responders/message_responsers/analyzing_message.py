@@ -1,9 +1,8 @@
-from objects.user import User
-from objects.ecode import ECode
+from chat_structures.product_evaluation import ProductEvaluation
 from data_structures.product import Product
-from data_structures.composition import Composition
 from responders.responder import Responder
-from data.config import ECODEDEGREES, OOPSMESSAGE
+from objects.user import User
+from data.config import OOPSMESSAGE
 
 from random import choice
 from datetime import datetime
@@ -20,8 +19,9 @@ class AnalyzingMessage(Responder):
         if message.content_type == 'text':  # Getting evalution of text
             print(f'{datetime.now()} --- TEXT analyzer from {message.chat.id}')
 
-            user = User.get_current_user(message.chat.id)
-            self._composition_analyzer(message.text, user)
+            degree = ProductEvaluation(self.bot, message.text)    
+            degree.send_to_user(
+                User.get_current_user(message.chat.id))
             return True
 
         elif message.content_type == 'photo':  # AI
@@ -42,9 +42,10 @@ class AnalyzingMessage(Responder):
                 message.chat.id,
                 'Анализирую текст с фото и из базы данных...'
             )
-            self._composition_analyzer(
-                product.extract_text() + ', ' + product.received_text,
-                user)
+
+            degree = ProductEvaluation(self.bot, 
+                product.extract_text() + ', ' + product.received_text)    
+            degree.send_to_user(user)
 
             product.send_to_OFF()
             self.bot.send_message(
@@ -58,7 +59,8 @@ class AnalyzingMessage(Responder):
                 message.chat.id,
                 'Такого продукта нет в Open Food Facts, я добавлю!'
             )
-            self._composition_analyzer(product.extract_text(), user)
+            degree = ProductEvaluation(self.bot, product.extract_text())    
+            degree.send_to_user(user)
             product.send_to_OFF()
 
         # Text from image
@@ -67,7 +69,8 @@ class AnalyzingMessage(Responder):
                 message.chat.id,
                 'Проверяю состав на фото...'
             )
-            self._composition_analyzer(product.extract_text(), user)
+            degree = ProductEvaluation(self.bot, product.extract_text())    
+            degree.send_to_user(user)
         
         # Text from OFF
         elif product.received_text:
@@ -84,7 +87,8 @@ class AnalyzingMessage(Responder):
                 message.chat.id,
                 'Нашел продукт в Open Food Facts, проверяю!'
             )
-            self._composition_analyzer(product.received_text, user)
+            degree = ProductEvaluation(self.bot, product.received_text)    
+            degree.send_to_user(user)
 
             self.bot.send_message(
                 message.chat.id,
@@ -112,19 +116,3 @@ class AnalyzingMessage(Responder):
             self.bot.send_message(message.chat.id,
                 choice(OOPSMESSAGE)
             )
-
-
-    def _composition_analyzer(self, text: str, user: User):
-        comp = Composition(text)
-        comp.set_user(user)
-        markup = types.InlineKeyboardMarkup(row_width=1)
-
-        ecode_list = [(el, ECode.get_harm_degree(el)) for el in comp.ecodes]
-        ecode_list.sort(key=lambda x: x[1], reverse=True)
-        for el, _ in ecode_list:
-            markup.add(types.InlineKeyboardButton(
-                el + f' ({ECODEDEGREES[ECode.get_harm_degree(el)]})', 
-                callback_data=el))  # Creating buttons with short description of ecodes
-        
-        self.bot.send_message(user.chat_id, 
-            comp.get_evaluation(), reply_markup=markup)
