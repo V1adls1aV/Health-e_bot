@@ -4,12 +4,11 @@ from datetime import datetime
 from random import choice
 import json
 
-from data_structures.composition import Composition
+from chat_structures.product_evaluation import ProductEvaluation
 from data_structures.product import Product
 from responders.responder import Responder
-from objects.ecode import ECode
 from objects.user import User
-from data.config import ECODEDEGREES, THANKSMESSAGE
+from data.config import THANKSMESSAGE
 
 
 class AnalyzingButton(Responder):
@@ -49,6 +48,7 @@ class AnalyzingButton(Responder):
                 return True
             return False
         except:
+            print(f'{datetime.now()} --- Exception: request is not JSON')
             return False
 
 
@@ -62,11 +62,11 @@ class AnalyzingButton(Responder):
                 message.chat.id,
                 choice(THANKSMESSAGE)
             )
+            
+            degree = ProductEvaluation(self.bot, product.extract_text())    
+            degree.send_to_user(User.get_current_user(message.chat.id))
+            
             product.barcode = self.barcode
-            self._composition_analyzer(
-                product.extract_text(),
-                User.get_current_user(message.chat.id)
-            )
             product.send_to_OFF()
 
         # Someone is cheating...
@@ -93,22 +93,3 @@ class AnalyzingButton(Responder):
 
             self.bot.register_next_step_handler(
                 message, self._send_product)
-
-
-    # There is problem with same function in two classes...
-    # They should be the same class maybe, but how?
-    # Or I have to create a new class...
-    def _composition_analyzer(self, text: str, user: User):
-        comp = Composition(text)
-        comp.set_user(user)
-        markup = types.InlineKeyboardMarkup(row_width=1)
-
-        ecode_list = [(el, ECode.get_harm_degree(el)) for el in comp.ecodes]
-        ecode_list.sort(key=lambda x: x[1], reverse=True)
-        for el, _ in ecode_list:
-            markup.add(types.InlineKeyboardButton(
-                el + f' ({ECODEDEGREES[ECode.get_harm_degree(el)]})', 
-                callback_data=el))  # Creating buttons with short description of ecodes
-
-        self.bot.send_message(user.chat_id, 
-            comp.get_evaluation(), reply_markup=markup)

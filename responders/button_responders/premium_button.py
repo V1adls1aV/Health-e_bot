@@ -35,6 +35,7 @@ class PremiumButton(Responder):
                 return True
             return False
         except:
+            print(f'{datetime.now()} --- Exception: request is not JSON')
             return False
 
 

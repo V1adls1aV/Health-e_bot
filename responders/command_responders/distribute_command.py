@@ -28,7 +28,7 @@ class DistributeCommand(Responder):
             try:
                 self.bot.forward_message(chat_id, message.chat.id, message.id)
                 amount += 1
-            except:  # User has banned the bot
-                pass
+            except:
+                print(f'{datetime.now()} --- User {chat_id} has banned the bot')
         
         self.bot.send_message(message.chat.id, f'Всего рассылок: {amount}')
