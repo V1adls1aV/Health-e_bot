@@ -1,3 +1,11 @@
-config.py
-_.py
 **__pycache__**
+**.pytest_cache**
+
+.coverage
+testing.session
+testing.session-journal
+pytest.ini
+tf_models/models
+**config.py**
+data
+_.py
