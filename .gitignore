@@ -1,6 +1,7 @@
 **__pycache__**
 **.pytest_cache**
 
+tf_models/model**
 .coverage
 testing.session
 testing.session-journal
