@@ -7,7 +7,5 @@ Service will find food additives (with harm estimation) and elements of your bla
 
 You can find more information of additives by clicking on buttons in bot's answer!
 
----
-
 ## Try it yourself!
 <a href="https://t.me/health_e_bot">Health-e bot</a>
