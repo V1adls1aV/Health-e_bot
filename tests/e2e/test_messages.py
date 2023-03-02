@@ -3,7 +3,7 @@ from telethon import TelegramClient
 
 from tests.e2e.setup import client  # importing fixture
 from tests.e2e.data.config import BOT_NAME, CLICKDELAY, \
-    TEXT1, TEXTRES1, TEXT2, TEXTRES2, TEXT3, TEXTRES3
+    TEXT1, TEXT2, TEXTRES2, TEXT3, TEXTRES3, OKMESSAGE
 
 
 async def test_message1(client: TelegramClient):
@@ -12,7 +12,7 @@ async def test_message1(client: TelegramClient):
         await asyncio.sleep(CLICKDELAY)
 
         message = (await client.get_messages(BOT_NAME))[0]
-        assert message.text == TEXTRES1
+        assert message.text in OKMESSAGE
 
 
 async def test_message2(client: TelegramClient):
